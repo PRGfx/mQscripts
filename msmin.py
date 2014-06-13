@@ -18,7 +18,7 @@ inputfile = "";
 outputfile = "";
 
 def usage():
-	print ("usage: inputfile [-o outputfile]")	
+	print ("usage: python msmin.py <inputfile> [<outputfile>]")	
 
 def getCode():
 	global inputfile, outputfile, codelen, code
@@ -126,15 +126,18 @@ def main(args):
 		usage()
 		sys.exit(1)
 	else:
-		inputfile = args[1]
-		x = inputfile.split('.')
-		if (len(x) > 1):
-			ext = x.pop()
-			x.append("min")
-			x.append(ext)
-			outputfile = ".".join(x)
+		inputfile = args[0]
+		if len(args) >= 2:
+			outputfile = args[1]
 		else:
-			outputfile = inputfile + "_min"
+			x = inputfile.split('.')
+			if (len(x) > 1):
+				ext = x.pop()
+				x.append("min")
+				x.append(ext)
+				outputfile = ".".join(x)
+			else:
+				outputfile = inputfile + "_min"
 	getCode()
 	read()
 	save()
