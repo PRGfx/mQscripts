@@ -1,0 +1,107 @@
+#Include "TextLib" as TextLib
+
+Boolean Time_IsLeapYear(Integer _Year) {
+	return (_Year % 4 == 0) && (_Year % 100 != 0) || (_Year % 400 == 0);
+}
+
+Integer Time_Timestamp(Integer _Year, Integer _Month, Integer _Day, Integer _Hour, Integer _Minute, Integer _Second, Integer _UTCOffset) {
+	declare Integer timestamp = 0;
+	declare ys = [0, 1];
+	for (year, 1970, _Year - 1) {
+		declare days = 365;
+		if (Time_IsLeapYear(year))
+			days += 1;
+		timestamp += days * 24 * 60 * 60;
+	}
+	for (month, 1, _Month - 1) {
+		declare days = 31;
+		if (month == 2) {
+			days = 28;
+			if (Time_IsLeapYear(_Year)) days = 29;
+		}
+		if (month == 4 || month == 6 || month == 9 || month == 11)
+			days = 30;
+		timestamp += days * 24 * 60 * 60;
+	}
+	timestamp += (_Day - 1) * 24 * 60 * 60;
+	timestamp += _Hour * 60 * 60;
+	timestamp += _Minute * 60;
+	timestamp += _Second;
+
+	timestamp += _UTCOffset * 60 * 60;
+
+	return timestamp;
+}
+
+Integer Time_Timestamp(Integer _UTCOffset) {
+	declare Integer year = TextLib::ToInteger(TextLib::SubString(CurrentLocalDateText, 0, 4));
+	declare Integer month = TextLib::ToInteger(TextLib::SubString(CurrentLocalDateText, 5, 2));
+	declare Integer day = TextLib::ToInteger(TextLib::SubString(CurrentLocalDateText, 8, 2));
+	declare Integer hour = TextLib::ToInteger(TextLib::SubString(CurrentLocalDateText, 11, 2));
+	declare Integer minute = TextLib::ToInteger(TextLib::SubString(CurrentLocalDateText, 14, 2));
+	declare Integer second = TextLib::ToInteger(TextLib::SubString(CurrentLocalDateText, 17, 2));
+
+	return Time_Timestamp(year, month, day, hour, minute, second, _UTCOffset);
+}
+Integer Time_Timestamp(Integer _Year, Integer _Month, Integer _Day, Integer _Hour, Integer _Minute, Integer _Second) {
+	return Time_Timestamp(_Year, _Month, _Day, _Hour, _Minute, _Second, 0);
+}
+Integer Time_Timestamp() {
+	return Time_Timestamp(0);
+}
+
+/**
+ * Implemented according to [http://ptspts.blogspot.de/2009/11/how-to-convert-unix-timestamp-to-civil.html]
+ */
+Text Time_Date(Integer _Timestamp) {
+	declare Integer ts = _Timestamp;
+	declare Integer second = ts % 86400;
+	ts /= 86400;
+	declare Integer hour = second / 3600;
+	declare Integer minute = (second / 60) % 60;
+	second = second % 60;
+
+	declare Integer x = (ts * 4 + 102032) / 146097 + 15;
+
+	declare Integer b = ts + 2442113 + x - (x / 4);
+	declare Integer c = (b * 20 - 2442) / 7305;
+	declare Integer d = b - 365 * c - c / 4;
+	declare Integer e = d * 1000 / 30601;
+	declare Integer f = d - e * 30 - e * 601 / 1000;
+
+	declare Integer month;
+	declare Integer year;
+	declare Integer day = f;
+	if (e < 14) {
+		year = c - 4716;
+		month = e - 1;
+	} else {
+		year = c - 4715;
+		month = e - 13;
+	}
+
+	declare Text date = TextLib::ToText(year) ^ "/";
+	if (month < 10)
+		date ^= "0";
+	date ^= TextLib::ToText(month) ^ "/";
+	if (day < 10)
+		date ^= "0";
+	date ^= TextLib::ToText(day) ^ " ";
+	if (hour < 10)
+		date ^= "0";
+	date ^= TextLib::ToText(hour) ^ ":";
+	if (minute < 10)
+		date ^= "0";
+	date ^= TextLib::ToText(minute) ^ ":";
+	if (second < 10)
+		date ^= "0";
+	date ^= TextLib::ToText(second);
+	return date;
+}
+
+Text Time_Date(Integer _Year, Integer _Month, Integer _Day, Integer _Hour, Integer _Minute, Integer _Second, Integer _UTCOffset) {
+	return Time_Date(Time_Timestamp(_Year, _Month, _Day, _Hour, _Minute, _Second, _UTCOffset));
+}
+Text Time_Date(Integer _Year, Integer _Month, Integer _Day, Integer _Hour, Integer _Minute, Integer _Second) {
+	return Time_Date(Time_Timestamp(_Year, _Month, _Day, _Hour, _Minute, _Second, 0));
+}
