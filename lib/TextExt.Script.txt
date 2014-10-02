@@ -160,25 +160,16 @@ Text[] TextExt_Words(Text string)
 
 Text TextExt_Uppercase(Text string)
 {
-	declare Text result;
-	for (i, 0, TextLib::Length(string)-1) {
-		result ^= _TextExt_charCase(TextExt_CharAt(string, i), "u");
-	}
-	return result;
+	return TextLib::ToUpperCase(string);
 }
 Text TextExt_Lowercase(Text string)
 {
-	declare Text result;
-	for (i, 0, TextLib::Length(string)-1) {
-		result ^= _TextExt_charCase(TextExt_CharAt(string, i), "l");
-	}
-	return result;
+	return TextLib::ToLowerCase(string);
 }
 Text TextExt_Capitalize(Text string)
 {
 	declare Text[] result = TextExt_Chars(string, True);
-	result[0] = _TextExt_charCase(result[0], "u");
-	log(result);
+	result[0] = TextLib::ToUpperCase(result[0]);
 	return TextExt_Join("", result);
 }
 Text TextExt_Titleize(Text string)
