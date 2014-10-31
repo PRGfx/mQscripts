@@ -153,7 +153,8 @@ CMlControl[] mQ(Text selector, CMlFrame root)
 		foreach (class in nselector["class"]) {
 			Page.GetClassChildren(class, root, True);
 			foreach (c in Page.GetClassChildren_Result) {
-				elements.add(c);
+				declare tmp = c;
+				elements.add(tmp);
 			}
 		}
 		foreach (tag in nselector["tag"]) {
