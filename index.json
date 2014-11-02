@@ -1,0 +1,49 @@
+{
+	"Animation": {
+		"author": "[Maniaplanet](https://github.com/maniaplanet)",
+		"url": "https://raw.githubusercontent.com/maniaplanet/library-manialink/master/modules/Animation.Script.txt",
+		"documentation": "https://github.com/maniaplanet/library-manialink#animations",
+		"dependencies": [
+		]
+	},
+	"Tooltip": {
+		"author": "[Maniaplanet](https://github.com/maniaplanet)",
+		"url": "https://raw.githubusercontent.com/maniaplanet/library-manialink/master/modules/Tooltip.Script.txt",
+		"documentation": "https://github.com/maniaplanet/library-manialink#tooltips",
+		"dependencies": [
+		]
+	},
+	"Draggable": {
+		"author": "[Maniaplanet](https://github.com/maniaplanet)",
+		"url": "https://raw.githubusercontent.com/maniaplanet/library-manialink/master/modules/Draggable.Script.txt",
+		"documentation": "https://github.com/maniaplanet/library-manialink#draggable",
+		"dependencies": [
+		]
+	},
+	"TextExt": {
+		"author": "[zocka](https://github.com/PRGfx)",
+		"url": "https://raw.githubusercontent.com/PRGfx/mQscripts/master/lib/TextExt.Script.txt",
+		"url_min": "https://raw.githubusercontent.com/PRGfx/mQscripts/master/lib/min/TextExt.min.txt",
+		"documentation": "https://github.com/PRGfx/mQscripts/wiki/TextExt",
+		"description": "A collection of Text-functions exceeding the standard TextLib",
+		"dependencies": [
+		]
+	},
+	"mQ": {
+		"author": "[zocka](https://github.com/PRGfx)",
+		"url": "https://raw.githubusercontent.com/PRGfx/mQscripts/master/lib/mQ.Script.txt",
+		"url_min": "https://raw.githubusercontent.com/PRGfx/mQscripts/master/lib/min/mQ.min.txt",
+		"documentation": "https://github.com/PRGfx/mQscripts/wiki/mQ",
+		"description": "DOM-selection functions",
+		"dependencies": [
+		]
+	},
+	"Time": {
+		"author": "[zocka](https://github.com/PRGfx)",
+		"url": "https://raw.githubusercontent.com/PRGfx/mQscripts/master/lib/Time.Script.txt",
+		"url_min": "https://raw.githubusercontent.com/PRGfx/mQscripts/master/lib/min/Time.min.txt",
+		"documentation": "https://github.com/PRGfx/mQscripts/wiki/Time",
+		"dependencies": [
+		]
+	}
+}
