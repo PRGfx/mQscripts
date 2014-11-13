@@ -1,3 +1,6 @@
+#Include "TextLib" as TextLib
+#Include "MathLib" as MathLib
+
 declare Text _TextExt_lowercase;
 declare Text _TextExt_uppercase;
 declare Text[Integer] _TextExt_asciitable;
