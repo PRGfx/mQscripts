@@ -11,6 +11,7 @@
 #Const TIME_DATE_RFC3339 "Y-d-m\\TH:i:sP"
 #Const TIME_DATE_RSS "D, d M Y H:i:s O"
 #Const TIME_DATE_W3C "Y-m-d\\TH:i:sP"
+#Const TIME_DATE_MANIAPLANET "Y/m/d H:i:s"
 
 declare Text[Integer] Time_Months;
 declare Text[Integer] Time_Days;
@@ -523,7 +524,7 @@ Text Time_Date(Integer[Text] _Parts, Text _Format) {
 			}
 			case "Z": {
 				declare Integer o = Time_GetTimezoneOffset();
-				date ^= TextLib::ToText(o / 100 * 60 + o % 1000 % 100);
+				date ^= TextLib::ToText(o / 100 * 360 + o % 1000 % 100 * 60);
 			}
 			case "c": {
 				date ^= Time_Date(_Parts, TIME_DATE_ISO8601);
@@ -541,30 +542,6 @@ Text Time_Date(Integer[Text] _Parts, Text _Format) {
 		i += 1;
 	}
 	return date;
-}
-
-Text Time_Date(Integer[Text] _Parts) {
-	declare Text date = TextLib::ToText(_Parts["year"]) ^ "/";
-	if (_Parts["month"] < 10)
-		date ^= "0";
-	date ^= TextLib::ToText(_Parts["month"]) ^ "/";
-	if (_Parts["day"] < 10)
-		date ^= "0";
-	date ^= TextLib::ToText(_Parts["day"]) ^ " ";
-	if (_Parts["hour"] < 10)
-		date ^= "0";
-	date ^= TextLib::ToText(_Parts["hour"]) ^ ":";
-	if (_Parts["minute"] < 10)
-		date ^= "0";
-	date ^= TextLib::ToText(_Parts["minute"]) ^ ":";
-	if (_Parts["second"] < 10)
-		date ^= "0";
-	date ^= TextLib::ToText(_Parts["second"]);
-	return date;
-}
-
-Text Time_Date(Text _Format) {
-	return Time_Date(Time_FromText(CurrentLocalDateText), _Format);
 }
 
 /**
@@ -606,10 +583,24 @@ Integer[Text] Time_FromTimestamp(Integer _Timestamp) {
 	return result;
 }
 
+Text Time_Date(Integer[Text] _Parts) {
+	return Time_Date(_Parts, TIME_DATE_MANIAPLANET);
+}
+Text Time_Date(Text _Format) {
+	return Time_Date(Time_FromText(CurrentLocalDateText), _Format);
+}
+Text Time_Date(Integer _Timestamp, Text _Format) {
+	return Time_Date(Time_FromTimestamp(_Timestamp), _Format);
+}
 Text Time_Date(Integer _Timestamp) {
 	return Time_Date(Time_FromTimestamp(_Timestamp));
 }
-
+Text Time_Date(Integer _Year, Integer _Month, Integer _Day, Integer _Hour, Integer _Minute, Integer _Second, Integer _UTCOffset, Text _Format) {
+	return Time_Date(Time_Timestamp(_Year, _Month, _Day, _Hour, _Minute, _Second, _UTCOffset), _Format);
+}
+Text Time_Date(Integer _Year, Integer _Month, Integer _Day, Integer _Hour, Integer _Minute, Integer _Second, Text _Format) {
+	return Time_Date(Time_Timestamp(_Year, _Month, _Day, _Hour, _Minute, _Second, Time_GetTimezoneOffset()), _Format);
+}
 Text Time_Date(Integer _Year, Integer _Month, Integer _Day, Integer _Hour, Integer _Minute, Integer _Second, Integer _UTCOffset) {
 	return Time_Date(Time_Timestamp(_Year, _Month, _Day, _Hour, _Minute, _Second, _UTCOffset));
 }
