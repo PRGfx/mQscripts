@@ -1,0 +1,178 @@
+#Const DFA_LOGLEVEL_NONE -1
+#Const DFA_LOGLEVEL_ERROR 0
+#Const DFA_LOGLEVEL_WARN  1
+#Const DFA_LOGLEVEL_DEBUG 2
+
+declare Integer _DFA_counter;
+declare Integer DFA_LogLevel;
+declare Text _DFA_NextState;
+
+Text DFA_Create() {
+	_DFA_counter += 1;
+	declare Text name = "DFANR" ^ _DFA_counter;
+	declare Text[][Text] DFA_States for Page;
+	DFA_States[name] = Text[];
+	declare Text[][Text] _DFA_RuleBase for Page;
+	_DFA_RuleBase[name] = Text[];
+	declare Text[Text][][Text][Text] DFA_Rules for Page;
+	DFA_Rules[name] = Text[Text][][Text];
+	declare Text[][Text] DFA_EndStates for Page;
+	DFA_EndStates[name] = Text[];
+	declare Text[][Text] DFA_Alphabet for Page;
+	DFA_Alphabet[name] = Text[];
+	declare Text[Text] DFA_Start for Page;
+	DFA_Start[name] = "";
+	return name;
+}
+
+Boolean DFA_StateExists(Text _DFA, Text _State, Boolean _Log, Text _Prefix) {
+	declare Text[][Text] DFA_States for Page;
+	if (DFA_States[_DFA].exists(_State))
+		return True;
+	if (_Log && DFA_LogLevel >= DFA_LOGLEVEL_WARN)
+		log("[WARN][DFA][" ^ _Prefix ^ "] State '" ^ _State ^ "' is not defined in this DFA instance.");
+	return False;
+}
+Boolean DFA_StateExists(Text _DFA, Text _State, Boolean _Log) {
+	return DFA_StateExists(_DFA, _State, _Log, "StateExists");
+}
+
+Text DFA_AddState(Text _DFA, Text _State) {
+	declare Text[][Text] DFA_States for Page;
+	if (!DFA_StateExists(_DFA, _State, False, "AddState")) {
+		DFA_States[_DFA].add(_State);
+	}
+	return _State;
+}
+Text DFA_AddState(Text _DFA) {
+	declare Text[][Text] DFA_States for Page;
+	return DFA_AddState(_DFA, _DFA ^ "_State" ^ DFA_States[_DFA].count);
+}
+Text[] DFA_GetStates(Text _DFA) {
+	declare Text[][Text] DFA_States for Page;
+	return DFA_States[_DFA];
+}
+Integer DFA_GetStatesCount(Text _DFA) {
+	declare Text[][Text] DFA_States for Page;
+	return DFA_States[_DFA].count;
+}
+
+Void DFA_SetStart(Text _DFA, Text _StartState) {
+	declare Text[Text] DFA_Start for Page;
+	DFA_Start[_DFA] = _StartState;
+	DFA_StateExists(_DFA, _StartState, True, "SetStart");
+}
+Text DFA_GetStart(Text _DFA) {
+	declare Text[Text] DFA_Start for Page;
+	declare Text _StartState = DFA_Start[_DFA];
+	if (!DFA_StateExists(_DFA, _StartState, False) && DFA_LogLevel >= DFA_LOGLEVEL_ERROR)
+		log("[ERROR][DFA][GetStart] Either no starting state is defined or the defined one is not registered as state.");
+	return _StartState;
+}
+Void DFA_AddAcceptingState(Text _DFA, Text _State) {
+	declare Text[][Text] DFA_EndStates for Page;
+	if (!DFA_EndStates[_DFA].exists(_State)) {
+		DFA_EndStates[_DFA].add(_State);
+	}
+	if (DFA_LogLevel >= DFA_LOGLEVEL_DEBUG)
+		log("[DEBUG][DFA][AddAcceptingState] State '" ^ _State ^ "' has been added as accepting state.");
+	DFA_StateExists(_DFA, _State, True, "AddAcceptingState");
+}
+Void DFA_RemoveAcceptingState(Text _DFA, Text _State) {
+	declare Text[][Text] DFA_EndStates for Page;
+	if (DFA_EndStates[_DFA].exists(_State)) {
+		DFA_EndStates[_DFA].remove(_State);
+	}
+}
+Text[] DFA_GetAcceptingStates(Text _DFA) {
+	declare Text[][Text] DFA_EndStates for Page;
+	return DFA_EndStates[_DFA];
+}
+
+Boolean DFA_DefineRule(Text _DFA, Text _Start, Text _Input, Text _Target) {
+	declare Text[][Text] _DFA_RuleBase for Page;
+	declare Text[Text][][Text][Text] DFA_Rules for Page;
+	DFA_StateExists(_DFA, _Start, True, "DefineRule][Start");
+	DFA_StateExists(_DFA, _Target, True, "DefineRule][Target");
+	declare Text _RuleKey = _Start ^ "->" ^ _Input;
+	if (_DFA_RuleBase[_DFA].exists(_RuleKey)) {
+		if (DFA_LogLevel >= DFA_LOGLEVEL_ERROR)
+			log("[ERROR][DFA][DefineRule] A rule from '" ^ _Start ^ "' with input '" ^ _Input ^ "' is already defined.");
+		return False;
+	}
+	_DFA_RuleBase[_DFA].add(_RuleKey);
+	if (!DFA_Rules[_DFA].existskey(_Start))
+		DFA_Rules[_DFA][_Start] = Text[Text][];
+	DFA_Rules[_DFA][_Start].add(["start" => _Start, "input" => _Input, "target" => _Target, "key" => _RuleKey]);
+	if (DFA_LogLevel >= DFA_LOGLEVEL_DEBUG)
+		log("[DEBUG][DFA][DefineRule] Added Rule from '" ^ _Start ^ "' to '" ^ _Target ^ "' with '" ^ _Input ^ "'.");
+	return True;
+}
+
+Void DFA_AddToAlphabet(Text _DFA, Text _Input) {
+	declare Text[][Text] DFA_Alphabet for Page;
+	if (!DFA_Alphabet[_DFA].exists(_Input)) {
+		DFA_Alphabet[_DFA].add(_Input);
+	}
+	if (DFA_LogLevel >= DFA_LOGLEVEL_DEBUG)
+		log("[DEBUG][DFA][AddToAlphabet] Added '" ^ _Input ^ "' to the Alphabet of DFA '" ^ _DFA ^ "'.");
+}
+Void DFA_RemoveFromAlphabet(Text _DFA, Text _Input) {
+	declare Text[][Text] DFA_Alphabet for Page;
+	if (DFA_Alphabet[_DFA].exists(_Input)) {
+		DFA_Alphabet[_DFA].remove(_Input);
+		if (DFA_LogLevel >= DFA_LOGLEVEL_DEBUG)
+			log("[DEBUG][DFA][RemoveFromAlphabet] Removed '" ^ _Input ^ "' from the Alphabet of DFA '" ^ _DFA ^ "'.");
+	}
+}
+Text[] DFA_GetAlphabet(Text _DFA) {
+	declare Text[][Text] DFA_Alphabet for Page;
+	return DFA_Alphabet[_DFA];
+}
+
+Boolean _DFA_DoStep(Text _DFA, Text _State, Text _Input) {
+	declare Text[][Text] _DFA_RuleBase for Page;
+	declare Text[Text][][Text][Text] DFA_Rules for Page;
+	declare Text _RuleKey = _State ^ "->" ^ _Input;
+	if (!_DFA_RuleBase[_DFA].exists(_RuleKey)) {
+		if (DFA_LogLevel >= DFA_LOGLEVEL_ERROR)
+			log("[ERROR][DFA][DoStep] No Rule for '" ^ _Input ^ "' from '" ^ _State ^ "' is defined.");
+		return False;
+	}
+	foreach (_Rule in DFA_Rules[_DFA][_State]) {
+		if (_Rule["input"] == _Input) {
+			_DFA_NextState = _Rule["target"];
+		}
+	}
+	return True;
+}
+Boolean _DFA_IsValid(Text _DFA, Text _State) {
+	return DFA_GetAcceptingStates(_DFA).exists(_State) && DFA_StateExists(_DFA, _State, True, "IsValid");
+}
+
+Boolean DFA_Evaluate(Text _DFA, Text[] _Input) {
+	declare Text[][Text] DFA_Alphabet for Page;
+
+	declare Text _State = DFA_GetStart(_DFA);
+	foreach (_Word in _Input) {
+		if (_Word != "EPSILON" && !DFA_Alphabet[_DFA].exists(_Word) && DFA_Alphabet[_DFA].count > 0) {
+			if (DFA_LogLevel >= DFA_LOGLEVEL_ERROR)
+				log("[ERROR][DFA][Evaluate] '" ^ _Word ^ "' is not in the DFA's alphabet.");
+			return False;
+		}
+		if (_DFA_DoStep(_DFA, _State, _Word))
+			_State = _DFA_NextState;
+		else
+			return False;
+	}
+	if (_DFA_IsValid(_DFA, _State))
+		return True;
+	return False;
+}
+
+Text DFA_GetCurrentState() {
+	return _DFA_NextState;
+}
+Text DFA_GetCurrentState(Text _DFA) {
+	return DFA_GetCurrentState();
+}
