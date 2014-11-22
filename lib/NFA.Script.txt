@@ -1,0 +1,173 @@
+#Const NFA_LOGLEVEL_NONE -1
+#Const NFA_LOGLEVEL_ERROR 0
+#Const NFA_LOGLEVEL_WARN  1
+#Const NFA_LOGLEVEL_DEBUG 2
+
+declare Integer _NFA_counter;
+declare Integer NFA_LogLevel;
+declare Text _NFA_CurrentState;
+
+
+Text _NFA_Join(Text delimiter, Text[] args) {
+	declare Text result = "";
+	if (args.count > 1) {
+		for (i, 0, args.count - 2) {
+			result ^= args[i] ^ delimiter;
+		}
+		result ^= args[args.count - 1];
+	} else if (args.count == 1) {
+		result = args[0];
+	}
+	return result;
+}
+
+Text NFA_Create() {
+	_NFA_counter += 1;
+	declare Text name = "NFANR" ^ _NFA_counter;
+	declare Text[][Text] NFA_States for Page;
+	NFA_States[name] = Text[];
+	declare Text[Text][][Text][Text] NFA_Rules for Page;
+	NFA_Rules[name] = Text[Text][][Text];
+	declare Text[][Text] NFA_EndStates for Page;
+	NFA_EndStates[name] = Text[];
+	declare Text[Text] NFA_Start for Page;
+	NFA_Start[name] = "";
+	return name;
+}
+
+Boolean NFA_StateExists(Text _NFA, Text _State, Boolean _Log, Text _Prefix) {
+	declare Text[][Text] NFA_States for Page;
+	if (NFA_States[_NFA].exists(_State))
+		return True;
+	if (_Log && NFA_LogLevel >= NFA_LOGLEVEL_WARN)
+		log("[WARN][NFA][" ^ _Prefix ^ "] State '" ^ _State ^ "' is not defined in this NFA instance.");
+	return False;
+}
+Boolean NFA_StateExists(Text _NFA, Text _State, Boolean _Log) {
+	return NFA_StateExists(_NFA, _State, _Log, "StateExists");
+}
+
+Text NFA_AddState(Text _NFA, Text _State) {
+	declare Text[][Text] NFA_States for Page;
+	if (!NFA_StateExists(_NFA, _State, False, "AddState")) {
+		NFA_States[_NFA].add(_State);
+	}
+	return _State;
+}
+Text NFA_AddState(Text _NFA) {
+	declare Text[][Text] NFA_States for Page;
+	return NFA_AddState(_NFA, _NFA ^ "_State" ^ NFA_States[_NFA].count);
+}
+Text[] NFA_GetStates(Text _NFA) {
+	declare Text[][Text] NFA_States for Page;
+	return NFA_States[_NFA];
+}
+Integer NFA_GetStatesCount(Text _NFA) {
+	declare Text[][Text] NFA_States for Page;
+	return NFA_States[_NFA].count;
+}
+
+Void NFA_SetStart(Text _NFA, Text _StartState) {
+	declare Text[Text] NFA_Start for Page;
+	NFA_Start[_NFA] = _StartState;
+	NFA_StateExists(_NFA, _StartState, True, "SetStart");
+}
+Text NFA_GetStart(Text _NFA) {
+	declare Text[Text] NFA_Start for Page;
+	declare Text _StartState = NFA_Start[_NFA];
+	if (!NFA_StateExists(_NFA, _StartState, False) && NFA_LogLevel >= NFA_LOGLEVEL_ERROR)
+		log("[ERROR][NFA][GetStart] Either no starting state is defined or the defined one is not registered as state.");
+	return _StartState;
+}
+Void NFA_AddAcceptingState(Text _NFA, Text _State) {
+	declare Text[][Text] NFA_EndStates for Page;
+	if (!NFA_EndStates[_NFA].exists(_State)) {
+		NFA_EndStates[_NFA].add(_State);
+	}
+	if (NFA_LogLevel >= NFA_LOGLEVEL_DEBUG)
+		log("[DEBUG][NFA][AddAcceptingState] State '" ^ _State ^ "' has been added as accepting state.");
+	NFA_StateExists(_NFA, _State, True, "AddAcceptingState");
+}
+Void NFA_RemoveAcceptingState(Text _NFA, Text _State) {
+	declare Text[][Text] NFA_EndStates for Page;
+	if (NFA_EndStates[_NFA].exists(_State)) {
+		NFA_EndStates[_NFA].remove(_State);
+	}
+}
+Text[] NFA_GetAcceptingStates(Text _NFA) {
+	declare Text[][Text] NFA_EndStates for Page;
+	return NFA_EndStates[_NFA];
+}
+
+Boolean NFA_DefineRule(Text _NFA, Text _Start, Text _Input, Text _Target) {
+	declare Text[Text][][Text][Text] NFA_Rules for Page;
+	NFA_StateExists(_NFA, _Start, True, "DefineRule][Start");
+	NFA_StateExists(_NFA, _Target, True, "DefineRule][Target");
+	if (!NFA_Rules[_NFA].existskey(_Start))
+		NFA_Rules[_NFA][_Start] = Text[Text][];
+	NFA_Rules[_NFA][_Start].add(["start" => _Start, "input" => _Input, "target" => _Target]);
+	if (NFA_LogLevel >= NFA_LOGLEVEL_DEBUG)
+		log("[DEBUG][NFA][DefineRule] Added Rule from '" ^ _Start ^ "' to '" ^ _Target ^ "' with '" ^ _Input ^ "'.");
+	return True;
+}
+
+Text[] NFA_GetRules(Text _NFA) {
+	declare Text[Text][][Text][Text] NFA_Rules for Page;
+	declare Text[] result;
+	foreach (RuleSet in NFA_Rules[_NFA]) {
+		foreach (Rule in RuleSet) {
+			result.add("'" ^ Rule["start"] ^ "' -- '[" ^ Rule["input"] ^ "]' -> '" ^ Rule["target"] ^ "'\n");
+		}
+	}
+	return result;
+}
+
+Boolean _NFA_IsValid(Text _NFA, Text _State) {
+	return NFA_GetAcceptingStates(_NFA).exists(_State) && NFA_StateExists(_NFA, _State, True, "IsValid");
+}
+
+Text[] _NFA_SubPath(Text[] _Input, Integer _Length) {
+	declare Text[] output = Text[];
+	for (i, _Length, _Input.count-1)
+		output.add(_Input[i]);
+	return output;
+}
+declare Text[] _NFA_Remainder;
+Boolean _NFA_Evaluate_Path(Text _NFA, Text _State, Text[] _Input) {
+	if (NFA_LogLevel >= NFA_LOGLEVEL_DEBUG)
+		log("[DEBUG][NFA][EvaluatePath] Testing path from '"^_State^"' with ["^_NFA_Join(", ", _Input)^"]");
+	_NFA_Remainder = _Input;
+	declare Text[Text][][Text][Text] NFA_Rules for Page;
+	declare Boolean result;
+	declare Boolean ruleFound = False;
+	if (_Input.count > 0 && NFA_Rules[_NFA].existskey(_State)) {
+		foreach (_Rule in NFA_Rules[_NFA][_State]) {
+			if (_Rule["input"] == _Input[0]) {
+				ruleFound = True;
+				_NFA_CurrentState = _Rule["target"];
+				result = result || _NFA_Evaluate_Path(_NFA, _Rule["target"], _NFA_SubPath(_Input, 1));
+			}
+		}
+	}
+	if (!ruleFound)
+		result = _NFA_IsValid(_NFA, _State);
+	return result;
+}
+
+Boolean NFA_Evaluate(Text _NFA, Text[] _Input, Boolean _Strict) {
+	declare _State = NFA_GetStart(_NFA);
+	if (NFA_LogLevel >= NFA_LOGLEVEL_DEBUG)
+		log("[DEBUG][NFA][Evaluate] Testing path from '"^_State^"' with ["^_NFA_Join(", ", _NFA_Remainder)^"]");
+	declare result = _NFA_Evaluate_Path(_NFA, _State, _Input);
+	return result && (!_Strict || _NFA_Remainder.count == 0);
+}
+Boolean NFA_Evaluate(Text _NFA, Text[] _Input) {
+	return NFA_Evaluate(_NFA, _Input, True);
+}
+
+Text NFA_GetCurrentState() {
+	return _NFA_CurrentState;
+}
+Text NFA_GetCurrentState(Text _NFA) {
+	return NFA_GetCurrentState();
+}
