@@ -1,0 +1,62 @@
+declare Integer _TStack_counter;
+declare Boolean TStack_Logging;
+
+Text TStack_Create() {
+	_TStack_counter += 1;
+	declare Text name = "TStackNr" ^ _TStack_counter;
+	declare Integer[Text] TStackSize for Page;
+	TStackSize[name] = 0;
+	declare Text[][Text] TStack for Page;
+	TStack[name] = Text[];
+	return name;
+}
+
+Integer TStack_Size(Text _Instance) {
+	declare Integer[Text] TStackSize for Page;
+	return TStackSize[_Instance];
+}
+Boolean TStack_IsEmpty(Text _Instance) {
+	declare Integer[Text] TStackSize for Page;
+	if (TStackSize[_Instance] == )
+		return True;
+	return False;
+}
+Void TStack_Push(Text _Instance, Text _Element) {
+	declare Integer[Text] TStackSize for Page;
+	declare Text[][Text] TStack for Page;
+	TStackSize[_Instance] += 1;
+	TStack[_Instance].add(_Element);
+}
+Text TStack_Peek(Text _Instance) {
+	declare Text[][Text] TStack for Page;
+	if (!TStack_IsEmpty(_Instance))
+		return TStack[_Instance][TStack_Size(_Instance) - 1];
+	if (TStack_Logging)
+		log("[ERROR][TStack][Peek] Stack is empty.");
+	return "";
+}
+Text TStack_Pop(Text _Instance) {
+	declare Text[][Text] TStack for Page;
+	declare Integer[Text] TStackSize for Page;
+	if (!TStack_IsEmpty(_Instance)) {
+		Text top = TStack[_Instance][TStack_Size(_Instance) - 1];
+		TStack[_Instance].removekey(TStack_Size(_Instance) - 1);
+		TStackSize[_Instance] -= 1;
+		return top;
+	}
+	if (TStack_Logging)
+		log("[ERROR][TStack][Peek] Stack is empty.");
+	return "";
+}
+Text TStack_Overwrite(Text _Instance, Text _Element) {
+	declare Text top = TStack_Pop(_Instance);
+	TStack_Push(_Instance, _Element);
+	return top;
+}
+Void TStack_Clear(Text _Instance) {
+	declare Integer[Text] TStackSize for Page;
+	TStackSize[_Instance] = 0;
+	declare Text[][Text] TStack for Page;
+	TStack[_Instance] = Text[];
+	
+}
