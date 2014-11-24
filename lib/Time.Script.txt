@@ -227,7 +227,11 @@ Void Time_Init() {
 		_Time_Init = True;
 	}
 }
-
+Integer _Time_Abs(Integer _Int) {
+	if (_Int < 0)
+		return _Int * (-1);
+	return _Int;
+}
 Integer Time_GetTimezoneOffset(Text _TimezoneName) {
 	Time_Init();
 	if (Time_Timezones.existskey(TextLib::ToLowerCase(_TimezoneName))) {
@@ -339,7 +343,9 @@ Integer Time_Timestamp(Integer _Year, Integer _Month, Integer _Day, Integer _Hou
 	timestamp += _Minute * 60;
 	timestamp += _Second;
 
-	timestamp += _UTCOffset * 60 * 60;
+	declare Integer offsetMinutes = _Time_Abs(_UTCOffset) % 1000 % 100 * 60;
+	declare Integer offsetHours = _Time_Abs(_UTCOffset) / 100 * 60 * 60;
+	timestamp += _UTCOffset / _Time_abs(_UTCOffset) * (offsetMinutes + offsetHours);
 
 	return timestamp;
 }
