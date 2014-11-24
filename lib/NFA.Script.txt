@@ -26,6 +26,8 @@ Text NFA_Create() {
 	declare Text name = "NFANR" ^ _NFA_counter;
 	declare Text[][Text] NFA_States for Page;
 	NFA_States[name] = Text[];
+	declare Text[][Text] NFA_Inputs for Page;
+	NFA_Inputs[name] = Text[];
 	declare Text[Text][][Text][Text] NFA_Rules for Page;
 	NFA_Rules[name] = Text[Text][][Text];
 	declare Text[][Text] NFA_EndStates for Page;
@@ -34,7 +36,11 @@ Text NFA_Create() {
 	NFA_Start[name] = "";
 	return name;
 }
-
+Void _NFA_AddInput(Text _NFA, Text _Input) {	
+	declare Text[][Text] NFA_Inputs for Page;
+	if (!NFA_Inputs[_NFA].exists(_Input))
+		NFA_Inputs[_NFA].add(_Input);
+}
 Boolean NFA_StateExists(Text _NFA, Text _State, Boolean _Log, Text _Prefix) {
 	declare Text[][Text] NFA_States for Page;
 	if (NFA_States[_NFA].exists(_State))
@@ -105,13 +111,14 @@ Boolean NFA_DefineRule(Text _NFA, Text _Start, Text _Input, Text _Target) {
 	NFA_StateExists(_NFA, _Target, True, "DefineRule][Target");
 	if (!NFA_Rules[_NFA].existskey(_Start))
 		NFA_Rules[_NFA][_Start] = Text[Text][];
+	_NFA_AddInput(_NFA, _Input);
 	NFA_Rules[_NFA][_Start].add(["start" => _Start, "input" => _Input, "target" => _Target]);
 	if (NFA_LogLevel >= NFA_LOGLEVEL_DEBUG)
 		log("[DEBUG][NFA][DefineRule] Added Rule from '" ^ _Start ^ "' to '" ^ _Target ^ "' with '" ^ _Input ^ "'.");
 	return True;
 }
 
-Text[] NFA_GetRules(Text _NFA) {
+Text[] NFA_ListRules(Text _NFA) {
 	declare Text[Text][][Text][Text] NFA_Rules for Page;
 	declare Text[] result;
 	foreach (RuleSet in NFA_Rules[_NFA]) {
@@ -170,4 +177,56 @@ Text NFA_GetCurrentState() {
 }
 Text NFA_GetCurrentState(Text _NFA) {
 	return NFA_GetCurrentState();
+}
+
+Text NFA_ToDFA(Text _NFA) {
+	declare Text[Text][][Text][Text] NFA_Rules for Page;
+	declare start = NFA_GetStart(_NFA);
+	declare DFA = NFA_Create();
+	declare Text DFA_Start;
+	DFA_Start = NFA_AddState(DFA, start);
+	NFA_SetStart(DFA, DFA_Start);
+	declare Text[Text] newStates = [start => DFA_Start];
+	declare Text[] stateIndices = [start];
+	declare Text[][Text] stateParts = [start => [start]];
+	declare Text[][Text][Text] combinedStates;
+	combinedStates[start] = Text[][Text];
+	declare Integer i = 0;
+	declare Boolean finished = False;
+	while (!finished) {
+		if (i < stateIndices.count) {			
+			declare _State = stateIndices[i];
+			if (!combinedStates.existskey(_State))
+				combinedStates[_State] = Text[][Text];
+			foreach (_Part in stateParts[_State]) {
+				if (NFA_Rules[_NFA].existskey(_Part)) {			
+					if (!combinedStates.existskey(_Part))
+						combinedStates[_Part] = Text[][Text];
+					foreach (Rule in NFA_Rules[_NFA][_Part]) {
+						declare _Input = Rule["input"];
+						if (!combinedStates[_State].existskey(_Input))
+							combinedStates[_State][_Input] = Text[];
+						if (!combinedStates[_State][_Input].exists(Rule["target"]))
+							combinedStates[_State][_Input].add(Rule["target"]);
+					}
+				}				
+			}
+			foreach (input => newStateParts in combinedStates[_State]) {
+				declare Text newState = _NFA_Join("::", newStateParts);
+				stateParts[newState] = newStateParts;
+				newStates[newState] = NFA_AddState(DFA, newState);
+				if (!stateIndices.exists(newState))
+					stateIndices.add(newState);
+				foreach (n in newStateParts) {
+					if (_NFA_IsValid(_NFA, n))
+						NFA_AddAcceptingState(DFA, newState);
+				}
+				NFA_DefineRule(DFA, _State, input, newStates[newState]);
+			}
+			i += 1;
+		} else {
+			finished = True;
+		}
+	}
+	return DFA;
 }
