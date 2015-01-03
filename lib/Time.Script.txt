@@ -345,7 +345,7 @@ Integer Time_Timestamp(Integer _Year, Integer _Month, Integer _Day, Integer _Hou
 
 	declare Integer offsetMinutes = _Time_Abs(_UTCOffset) % 1000 % 100 * 60;
 	declare Integer offsetHours = _Time_Abs(_UTCOffset) / 100 * 60 * 60;
-	timestamp += _UTCOffset / _Time_abs(_UTCOffset) * (offsetMinutes + offsetHours);
+	timestamp += _UTCOffset / _Time_Abs(_UTCOffset) * (offsetMinutes + offsetHours);
 
 	return timestamp;
 }
