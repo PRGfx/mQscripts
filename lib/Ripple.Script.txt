@@ -1,0 +1,75 @@
+#Include "AnimLib" as AnimLib
+declare CMlFrame[CMlControl] _Ripple_Instances;
+declare CMlQuad[CMlFrame] _Ripple_Drops;
+declare Boolean[CMlQuad] _Ripple_AnimationLock;
+declare Integer[CMlQuad] _Ripple_AnimationStep;
+
+/**
+ * Can be called after repostioning the button frame or resizing the button.
+ * @param Text _FrameId The Id of the frame containing the Button elements.
+ * @return Boolean False if the required elements were not found in the frame.
+ */
+Boolean Ripple_Clip(Text _FrameId) {
+	declare container = (Page.GetFirstChild(_FrameId) as CMlFrame);
+	declare CMlQuad button = Null;
+	declare CMlQuad drop = Null;
+	foreach (ctrl in container.Controls) {
+		if (ctrl.HasClass("ripple_button")) button = (ctrl as CMlQuad);
+		if (ctrl.HasClass("ripple_drop")) drop = (ctrl as CMlQuad);
+	}
+	if (button == Null || drop == Null) return False;
+	container.ClipWindowActive = True;
+	container.ClipWindowSize = button.Size * button.AbsoluteScale;
+	container.ClipWindowRelativePosition = button.Size * button.AbsoluteScale;
+	container.ClipWindowRelativePosition.X *= 0.5;
+	container.ClipWindowRelativePosition.Y *= -0.5;
+	return True;
+}
+/**
+ * Called once to apply the ripple effect to a prepared frame.
+ * @param Text _FrameId The Id of the frame containing the Button elements.
+ * @return Boolean False if the required elements were not found in the frame.
+ */
+Boolean Ripple_Create(Text _FrameId) {
+	declare container = (Page.GetFirstChild(_FrameId) as CMlFrame);
+	declare CMlQuad button = Null;
+	declare CMlQuad drop = Null;
+	foreach (ctrl in container.Controls) {
+		if (ctrl.HasClass("ripple_button")) button = (ctrl as CMlQuad);
+		if (ctrl.HasClass("ripple_drop")) drop = (ctrl as CMlQuad);
+	}
+	if (button == Null || drop == Null) return False;
+	_Ripple_Instances[button] = container;
+	_Ripple_Drops[container] = drop;
+	drop.VerticalAlign = CMlControl::AlignVertical::VCenter;
+	drop.HorizontalAlign = CMlControl::AlignHorizontal::HCenter;
+	drop.RelativeScale = 0.;
+	return Ripple_Clip(_FrameId);
+}
+/**
+ * Called once in the main loop.
+ */
+Void Ripple_EventLoop() {
+	foreach (Event in PendingEvents) {
+		if (Event.Type == CMlEvent::Type::MouseClick) {
+			if(_Ripple_Instances.existskey(Event.Control)) {
+				declare CMlQuad drop = _Ripple_Drops[_Ripple_Instances[Event.Control]];
+				declare Vec3 offset = drop.RelativePosition - drop.AbsolutePosition;
+				drop.RelativePosition.X = offset.X + MouseX;
+				drop.RelativePosition.Y = offset.Y + MouseY;
+				_Ripple_AnimationLock[drop] = True;
+				_Ripple_AnimationStep[drop] = 0;
+			}			
+		}			
+	}
+	foreach (Control => X in _Ripple_AnimationLock) {
+		if (X) {
+			Control.RelativeScale += AnimLib::EaseInSine(_Ripple_AnimationStep[Control], 0.0, 0.1, 60);
+			_Ripple_AnimationStep[Control] += 1;
+			if (Control.RelativeScale >= 1) {
+				_Ripple_AnimationLock[Control] = False;
+				Control.RelativeScale = 0.0;
+			}					
+		}
+	}
+}
