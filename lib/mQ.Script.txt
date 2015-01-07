@@ -354,7 +354,7 @@ CMlControl mQ(CMlControl[] elements)
 	return mQ(0, elements);
 }
 
-Boolean mQ_IsOver(CMlControl control) mQ_
+Boolean mQ_IsOver(CMlControl control) 
 {
 	declare Vec2 topleft = <0., 0.>;
 	declare Real width = control.AbsoluteScale * control.Size[0];
