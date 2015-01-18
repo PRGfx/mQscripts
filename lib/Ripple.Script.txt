@@ -23,6 +23,10 @@ Boolean Ripple_Clip(Text _FrameId) {
 	container.ClipWindowRelativePosition = button.Size * button.AbsoluteScale;
 	container.ClipWindowRelativePosition.X *= 0.5;
 	container.ClipWindowRelativePosition.Y *= -0.5;
+	if (button.VerticalAlign == CMlControl::AlignVertical::VCenter) container.ClipWindowRelativePosition.Y += button.Size.Y / 2;
+	if (button.VerticalAlign == CMlControl::AlignVertical::Bottom) container.ClipWindowRelativePosition.Y += button.Size.Y;
+	if (button.HorizontalAlign == CMlControl::AlignHorizontal::HCenter) container.ClipWindowRelativePosition.X -= button.Size.X / 2;
+	if (button.HorizontalAlign == CMlControl::AlignHorizontal::Right) container.ClipWindowRelativePosition.X -= button.Size.X;
 	return True;
 }
 /**
