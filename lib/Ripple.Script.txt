@@ -2,7 +2,7 @@
 declare CMlFrame[CMlControl] _Ripple_Instances;
 declare CMlQuad[CMlFrame] _Ripple_Drops;
 declare Boolean[CMlQuad] _Ripple_AnimationLock;
-declare Integer[CMlQuad] _Ripple_AnimationStep;
+declare Integer[CMlQuad] _Ripple_AnimationStart;
 
 /**
  * Can be called after repostioning the button frame or resizing the button.
@@ -62,18 +62,18 @@ Void Ripple_EventLoop() {
 				drop.RelativePosition.X = offset.X + MouseX;
 				drop.RelativePosition.Y = offset.Y + MouseY;
 				_Ripple_AnimationLock[drop] = True;
-				_Ripple_AnimationStep[drop] = 0;
+				_Ripple_AnimationStart[drop] = Now;
 			}			
 		}			
 	}
 	foreach (Control => X in _Ripple_AnimationLock) {
 		if (X) {
-			Control.RelativeScale += AnimLib::EaseInSine(_Ripple_AnimationStep[Control], 0.0, 0.1, 60);
-			_Ripple_AnimationStep[Control] += 1;
+			declare Integer step = (Now - _Ripple_AnimationStart[Control]) * 46 / 300;
+			Control.RelativeScale += AnimLib::EaseInSine(step, 0.0, 0.1, 46);
 			if (Control.RelativeScale >= 1) {
 				_Ripple_AnimationLock[Control] = False;
 				Control.RelativeScale = 0.0;
-			}					
+			}						
 		}
 	}
 }
