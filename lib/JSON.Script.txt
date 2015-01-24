@@ -1,0 +1,580 @@
+#Include "TextLib" as TextLib
+#Const JSON_TYPE_OBJECT     "JSON_OBJECT"
+#Const JSON_TYPE_ARRAY      "JSON_ARRAY"
+#Const JSON_TYPE_KEYVALUE   "JSON_KEYVALUE"
+
+#Const JSON_TYPE_STRING		"string"
+#Const JSON_TYPE_NUMBER		"number"
+#Const JSON_TYPE_CONST		"const"
+
+#Const JSON_LOGLEVEL_NONE  -1
+#Const JSON_LOGLEVEL_ERROR	0
+#Const JSON_LOGLEVEL_WARN	1
+#Const JSON_LOGLEVEL_INFO	2
+#Const JSON_LOGLEVEL_DEBUG	3
+
+declare Integer JSON_LogLevel;
+
+declare Boolean _JSON_IsInit;
+declare Text JSON_STATE_BASE;
+declare Text JSON_STATE_BASE_EXP;
+declare Text JSON_STATE_NUMBER;
+declare Text JSON_STATE_NUMBER_EXP;
+declare Text JSON_STATE_NUMBER_PREC;
+declare Text JSON_STATE_KEY_END;
+declare Text JSON_STATE_VALUE;
+declare Text JSON_STATE_ARRAY_BASE;
+declare Text JSON_STATE_ARRAY_EXP;
+declare Text JSON_STATE_VALUE_END;
+declare Text JSON_STATE_END;
+Void _JSON_Init() {
+	if (!_JSON_IsInit) {
+		_JSON_IsInit = True;
+		JSON_STATE_BASE = "JSON_STATE_BASE";
+		JSON_STATE_BASE_EXP = "JSON_STATE_BASE_EXP";
+		JSON_STATE_NUMBER = "JSON_STATE_NUMBER";
+		JSON_STATE_NUMBER_EXP = "JSON_STATE_NUMBER_EXP";
+		JSON_STATE_NUMBER_PREC = "JSON_STATE_NUMBER_PREC";
+		JSON_STATE_KEY_END = "JSON_STATE_KEY_END";
+		JSON_STATE_VALUE = "JSON_STATE_VALUE";
+		JSON_STATE_ARRAY_BASE = "JSON_STATE_ARRAY_BASE";
+		JSON_STATE_ARRAY_EXP = "JSON_STATE_ARRAY_EXP";
+		JSON_STATE_VALUE_END = "JSON_STATE_VALUE_END";
+		JSON_STATE_END = "JSON_STATE_END";
+	}
+}
+
+Boolean _JSON_IsSpace(Text char) {
+	declare Text[] spaces = [" ", "\n", "\t", "\r"];
+	return spaces.exists(char);
+}
+Boolean _JSON_IsDigit(Text char) {
+	declare Text[] digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+	return digits.exists(char);
+}
+
+declare Text _JSON_ParseValue;
+Integer _JSON_Parse_String(Text _Input) {
+	_JSON_Init();
+	declare strlen = TextLib::Length(_Input);
+	declare i = 0;
+	declare value = "";
+	declare escaped = -1;
+	while (i < strlen) {
+		declare char = TextLib::SubText(_Input, i, 1);
+		if (char == "\\") escaped = i;
+		if (char == "\"" && escaped+1 < i) break;
+		value ^= char;
+		i+=1;
+	}
+	_JSON_ParseValue = value;
+	return i;
+}
+Integer _JSON_Parse_Number(Text _Input) {
+	_JSON_Init();
+	declare strlen = TextLib::Length(_Input);
+	declare i = 0;
+	declare currentValue = "";
+	declare state = JSON_STATE_NUMBER;
+	declare base = False;
+	declare sign = False;
+	declare expStarted = False;
+	while (i < strlen) {
+		declare char = TextLib::SubText(_Input, i, 1);
+		switch(state) {
+			case JSON_STATE_NUMBER: {
+				if (char == "-") {
+					if(TextLib::Length(currentValue) == 0)
+						currentValue ^= char;
+					else
+						break;
+					sign = True;
+				}
+				else if (_JSON_IsDigit(char) || char == ".") {
+					if (char == ".") {
+						if (TextLib::Length(currentValue) == 1 && sign || TextLib::Length(currentValue) == 0)
+							break;
+						state = JSON_STATE_NUMBER_PREC;
+					}
+					currentValue ^= char;
+				}
+				else if (TextLib::ToLowerCase(char)=="e") {
+					currentValue ^= char;
+					state = JSON_STATE_NUMBER_EXP;
+				}
+				else break;				
+			}
+			case JSON_STATE_NUMBER_PREC: {
+				if (_JSON_IsDigit(char)) {
+					currentValue ^= char;
+				}
+				else if (TextLib::ToLowerCase(char)=="e") {
+					expStarted = False;
+					currentValue ^= char;
+					state = JSON_STATE_NUMBER_EXP;
+				}
+				else break;
+			}
+			case JSON_STATE_NUMBER_EXP: {
+				if (char == "-" || char == "+"){
+					if (expStarted)
+						break;
+					currentValue ^= char;
+					expStarted = True;
+				}
+				else if (_JSON_IsDigit(char))
+					currentValue ^= char;
+				else break;
+			}
+		}
+		i+=1;
+	}
+	_JSON_ParseValue = currentValue;
+	return i;
+}
+
+Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
+	_JSON_Init();
+	declare Text[Text] _JSON_Instances for Page;
+	if (_JSON_Instances.existskey(_Input))
+		return _JSON_Instances[_Input];
+	declare Integer _JSON_Counter for Page;
+	_JSON_Counter += 1;
+	declare Text ident = "JSON_Obj_" ^ _JSON_Counter;
+
+	declare Integer[Text] _JSON_Length for Page;
+	declare Integer[Text] _JSON_ArraySize for Page;
+	_JSON_ArraySize[ident] = 0;
+	declare Text[][Text] _JSON_Keys for Page;
+	_JSON_Keys[ident] = Text[];
+	declare Text[Text][Text] _JSON_Values for Page;
+	_JSON_Values[ident] = Text[Text];
+	declare Text[][Text] _JSON_ArrayValues for Page;
+	declare Text[Text][Text] _JSON_ValueTypes for Page;
+	_JSON_ValueTypes[ident] = Text[Text];
+	declare Text[Text] _JSON_Types for Page;
+
+	declare Integer strlen = TextLib::Length(_Input);
+	declare state = JSON_STATE_BASE;
+
+	declare mode = "object";
+	_JSON_Types[ident] = JSON_TYPE_OBJECT;
+	if (_IsArray) {
+		mode = "array";
+		state = JSON_STATE_ARRAY_BASE;
+		_JSON_Types[ident] = JSON_TYPE_ARRAY;
+	}
+	declare Text currentKey;
+	declare Text currentValue;
+	declare Text currentType;
+	declare arraySize = 0;
+	declare Text[] values;
+	declare Text[Text] valueTypes;
+	declare added = False;
+	declare Integer i = 0;
+	while (i < strlen) {
+		declare char = TextLib::SubText(_Input, i, 1);
+		switch (state) {
+			case JSON_STATE_BASE: {
+				if (char == "\"") {
+					i += _JSON_Parse_String(TextLib::SubText(_Input, i+1, strlen)) + 1;
+					currentKey = _JSON_ParseValue;
+					state = JSON_STATE_KEY_END;
+				}
+			}
+			case JSON_STATE_KEY_END: {
+				if (char == ":")
+					state = JSON_STATE_VALUE;
+				else if (!_JSON_IsSpace(char))
+					state = JSON_STATE_END;
+			}
+			case JSON_STATE_VALUE: {
+				if (char == "\"") {
+					i += _JSON_Parse_String(TextLib::SubText(_Input, i+1, strlen)) + 1;
+					currentValue = _JSON_ParseValue;
+					state = JSON_STATE_VALUE_END;
+					_JSON_ValueTypes[ident][currentKey] = JSON_TYPE_STRING;
+				} else if (_JSON_IsDigit(char) || char == "-") {
+					i += _JSON_Parse_Number(TextLib::SubText(_Input, i, strlen)) - 1;
+					currentValue = _JSON_ParseValue;
+					state = JSON_STATE_VALUE_END;
+					_JSON_ValueTypes[ident][currentKey] = JSON_TYPE_NUMBER;
+				} else if (char == "{") {
+					currentValue = _JSON_Parse_Object(TextLib::SubText(_Input, i+1, strlen), False, False);
+					i += _JSON_Length[currentValue] + 1;
+					state = JSON_STATE_VALUE_END;
+					_JSON_ValueTypes[ident][currentKey] = JSON_TYPE_OBJECT;
+				} else if (char == "[") {
+					currentValue = _JSON_Parse_Object(TextLib::SubText(_Input, i+1, strlen), False, True);
+					i += _JSON_Length[currentValue] + 1;
+					_JSON_ValueTypes[ident][currentKey] = JSON_TYPE_ARRAY;
+					state = JSON_STATE_VALUE_END;
+				} else {
+					foreach (const in ["true", "false", "null"]) {
+						declare Integer l = TextLib::Length(const);
+						if (TextLib::Find(const, TextLib::SubText(_Input, i, l), False, False)) {
+							i += l - 1;
+							currentValue = const;
+							state = JSON_STATE_VALUE_END;
+						}
+					}
+				}
+			}
+			case JSON_STATE_VALUE_END: {
+				_JSON_Values[ident][currentKey] = currentValue;
+				if (char == ",") state = JSON_STATE_BASE;
+				if (!_JSON_Keys[ident].exists(currentKey))
+					_JSON_Keys[ident].add(currentKey);
+				if (char == "}") break;
+			}
+			case JSON_STATE_ARRAY_BASE: {
+				added = False;
+				if (char == "]") break;
+				else if (char == "\"") {
+					i += _JSON_Parse_String(TextLib::SubText(_Input, i+1, strlen)) + 1;
+					currentValue = _JSON_ParseValue;
+					state = JSON_STATE_ARRAY_EXP;
+					currentType = JSON_TYPE_STRING;
+				} else if (_JSON_IsDigit(char) || char == "-") {
+					i += _JSON_Parse_Number(TextLib::SubText(_Input, i, strlen)) - 1;
+					currentValue = _JSON_ParseValue;
+					state = JSON_STATE_ARRAY_EXP;
+					currentType = JSON_TYPE_NUMBER;
+				} else if (char == "{") {
+					currentValue = _JSON_Parse_Object(TextLib::SubText(_Input, i+1, strlen), False, False);
+					i += _JSON_Length[currentValue] - 1;
+					state = JSON_STATE_ARRAY_EXP;
+					currentType = JSON_TYPE_OBJECT;
+				} else if (char == "[") {
+					currentValue = _JSON_Parse_Object(TextLib::SubText(_Input, i+1, strlen), False, True);
+					i += _JSON_Length[currentValue] - 1;
+					state = JSON_STATE_ARRAY_EXP;
+					currentType = JSON_TYPE_ARRAY;
+				} else {
+					foreach (const in ["true", "false", "null"]) {
+						declare Integer l = TextLib::Length(const);
+						if (TextLib::Find(const, TextLib::SubText(_Input, i, l), False, False)) {
+							i += l - 1;
+							currentValue = const;
+							state = JSON_STATE_ARRAY_EXP;
+							currentType = JSON_TYPE_CONST;
+						}
+					}
+				}
+			}
+			case JSON_STATE_ARRAY_EXP: {
+				if (!added) {
+					added = True;
+					values.add(currentValue);
+					valueTypes[arraySize^""] = currentType;
+					arraySize += 1;
+				}
+				if (char == ",") state = JSON_STATE_ARRAY_BASE;
+				if (char == "]") break;
+			}
+		}
+		if (state == JSON_STATE_END) break;
+		i += 1;
+	}
+	if (_IsArray) {
+		_JSON_ArrayValues[ident] = values;
+		_JSON_ArraySize[ident] = arraySize;
+		_JSON_ValueTypes[ident] = valueTypes;
+	}
+	_JSON_Length[ident] = i;
+	return ident;
+}
+/**
+ * Parses a given JSON string.
+ * @param 	Text _Input The raw JSON string, either an array or an object, so wrapped in [] or {}.
+ * @returns Text A handle on a JSON object.
+ */
+Text JSON_Parse(Text _Input) {
+	_JSON_Init();
+	declare Text ident = "";
+
+	declare Integer[Text] _JSON_Length for Page;
+
+	declare Integer strlen = TextLib::Length(_Input);
+	declare state = JSON_STATE_BASE;
+
+	declare Integer i = 0;
+	while (i < strlen) {
+		declare char = TextLib::SubText(_Input, i, 1);
+		switch (state) {
+			case JSON_STATE_BASE: {
+				if (char == "{") {
+					ident = _JSON_Parse_Object(TextLib::SubText(_Input, i+1, strlen), False, False);
+					i += _JSON_Length[ident] - 1;
+				}
+				else if (char == "[") {
+					ident = _JSON_Parse_Object(TextLib::SubText(_Input, i+1, strlen), False, True);
+					i += _JSON_Length[ident] - 1;
+				}
+				else if (!_JSON_IsSpace(char)) break;
+			}
+		}
+		i += 1;
+	}
+	return ident;
+}
+/**
+ * Returs all keys contained in the requested JSON Object.
+ * @param 	Text _Instance A handle to a valid JSON Object.
+ * @returns Text[] An array with keys.
+ */
+Text[] JSON_Keys(Text _Instance) {
+	declare Text[][Text] _JSON_Keys for Page;
+	if (_JSON_Keys.existskey(_Instance))
+		return _JSON_Keys[_Instance];
+	else if (JSON_LogLevel >= JSON_LOGLEVEL_WARN)
+		log("[WARN][JSON] '" ^ _Instance ^ "' is not a valid JSON object.");
+	return Text[];
+}
+/**
+ * Checks whether a JSON Object contains a certain key
+ * @param 	Text _Instance A handle to a valid JSON Object.
+ * @param 	Text _Key      The key in question.
+ * @returns Boolean True if the key is contained in the object.
+ */
+Boolean JSON_HasKey(Text _Instance, Text _Key) {
+	return JSON_Keys(_Instance).exists(_Key);
+}
+/**
+ * Returns the length of a processed JSON string.
+ * @param Text _Instance A handle to a valid JSON Object.
+ */
+Integer JSON_Length(Text _Instance) {
+	declare Integer[Text] _JSON_Length for Page;
+	if (_JSON_Length.existskey(_Instance))
+		return _JSON_Length[_Instance];
+	return 0;
+}
+/**
+ * Returns a value equal to JSON_TYPE_ARRAY or JSON_TYPE_OBJECT according to the given handle.
+ * @param Text _Instance A handle to a valid JSON Object.
+ */
+Text JSON_GetType(Text _Instance) {
+	declare Text[Text] _JSON_Types for Page;
+	return _JSON_Types[_Instance];
+}
+/**
+ * Returns whether the given handle points to a JSON Object.
+ * @param Text _Instance A handle to a valid JSON Object.
+ */
+Boolean JSON_IsObject(Text _Instance) {
+	declare Text[Text] _JSON_Types for Page;
+	return _JSON_Types.existskey(_Instance) && _JSON_Types[_Instance] == JSON_TYPE_OBJECT;
+}
+/**
+ * Returns whether the given handle points to a JSON Array.
+ * @param Text _Instance A handle to a valid JSON Array.
+ */
+Boolean JSON_IsArray(Text _Instance) {
+	declare Text[Text] _JSON_Types for Page;
+	return _JSON_Types.existskey(_Instance) && _JSON_Types[_Instance] == JSON_TYPE_ARRAY;
+}
+/**
+ * Returns the number of elements in the given JSON Array.
+ * @param Text _Instance A handle to a valid JSON Array.
+ */
+Integer JSON_ArraySize(Text _Instance) {
+	declare Integer[Text] _JSON_ArraySize for Page;
+	if (_JSON_ArraySize.existskey(_Instance))
+		return _JSON_ArraySize[_Instance];
+	return -1;
+}
+Text _JSON_Get(Text _Instance, Text _Key, Text[] _Types) {
+	declare Text[Text][Text] _JSON_Values for Page;
+	declare Text[Text][Text] _JSON_ValueTypes for Page;
+	if (_JSON_Values.existskey(_Instance)) {
+		if (!_JSON_Values[_Instance].existskey(_Key)) {
+			if (JSON_LogLevel >= JSON_LOGLEVEL_ERROR)
+				log("[ERROR][JSON] '" ^ _Instance ^ "' has no key '" ^ _Key ^ "'");
+			return "";
+		}
+		if (_Types.count == 0 || _Types.exists(_JSON_ValueTypes[_Instance][_Key]))
+			return _JSON_Values[_Instance][_Key];
+		else {
+			if (JSON_LogLevel >= JSON_LOGLEVEL_WARN)
+				log("[WARN][JSON] The requested key is of type " ^ _JSON_ValueTypes[_Instance][_Key]);
+			return "";
+		}
+	}
+	if (JSON_LogLevel >= JSON_LOGLEVEL_ERROR)
+		log("[ERROR][JSON] '" ^ _Instance ^ "' is not a valid JSON Object.");
+	return "";
+}
+/**
+ * Returns the type of a value in a JSON Object. The returned value will equal
+ * JSON_TYPE_OBJECT, JSON_TYPE_ARRAY, JSON_TYPE_STRING, JSON_TYPE_NUMBER or JSON_TYPE_CONST
+ * @param Text _Instance A handle to a valid JSON Object.
+ * @param Text _Key      A key within the JSON Object.
+ */
+Text JSON_GetType(Text _Instance, Text _Key) {
+	declare Text[Text][Text] _JSON_ValueTypes for Page;
+	if (_JSON_ValueTypes.existskey(_Instance)) {
+		if (!_JSON_ValueTypes[_Instance].existskey(_Key)) {
+			if (JSON_LogLevel >= JSON_LOGLEVEL_ERROR)
+				log("[ERROR][JSON] '" ^ _Instance ^ "' has no key '" ^ _Key ^ "'");
+			return "";
+		}
+		return _JSON_ValueTypes[_Instance][_Key];
+	}
+	if (JSON_LogLevel >= JSON_LOGLEVEL_ERROR)
+		log("[ERROR][JSON] '" ^ _Instance ^ "' is not a valid JSON Object.");
+	return "";
+}
+/**
+ * Returns the type of a value in a JSON Array. The returned value will equal
+ * JSON_TYPE_OBJECT, JSON_TYPE_ARRAY, JSON_TYPE_STRING, JSON_TYPE_NUMBER or JSON_TYPE_CONST
+ * @param Text 		_Instance A handle to a valid JSON Array.
+ * @param Integer 	_Offset   A key within the JSON Array.
+ */
+Text JSON_GetType(Text _Instance, Integer _Key) {
+	return JSON_GetType(_Instance, _Key ^ "");
+}
+/**
+ * Returns the value of a string value from a JSON Object.
+ * @param Text _Instance A handle to a valid JSON Object.
+ * @param Text _Key      A key within that object.
+ * @returns Text 		 Returns an empty String, if the value was not a string.
+ */
+Text JSON_GetText(Text _Instance, Text _Key) {
+	return _JSON_Get(_Instance, _Key, [JSON_TYPE_STRING, JSON_TYPE_NUMBER]);
+}
+/**
+ * Returns a handle of a JSON Object from a JSON Object.
+ * @param Text _Instance A handle to a valid JSON Object.
+ * @param Text _Key      A key within that object.
+ * @returns Text 		 Returns an empty String, if the value was not an object.
+ */
+Text JSON_GetObject(Text _Instance, Text _Key) {
+	return _JSON_Get(_Instance, _Key, [JSON_TYPE_OBJECT]);
+}
+/**
+ * Returns a handle of a JSON Array from a JSON Object.
+ * @param Text _Instance A handle to a valid JSON Object.
+ * @param Text _Key      A key within that object.
+ * @returns Text 		 Returns an empty String, if the value was not an array.
+ */
+Text JSON_GetArray(Text _Instance, Text _Key) {
+	return _JSON_Get(_Instance, _Key, [JSON_TYPE_ARRAY]);
+}
+/**
+ * Returns the boolean version of a value in a JSON Object. Notice that only /true/i will return True,
+ * everything else will return False.
+ * @param Text _Instance A handle to a valid JSON Object.
+ * @param Text _Key      A key within that object.
+ */
+Boolean JSON_GetBoolean(Text _Instance, Text _Key) {
+	return TextLib::ToLowerCase(_JSON_Get(_Instance, _Key, [JSON_TYPE_CONST])) == "true";
+}
+/**
+ * Returns if the requested value was null.
+ * @param Text _Instance A handle to a valid JSON Object.
+ * @param Text _Key      A key within that object.
+ */
+Boolean JSON_IsNull(Text _Instance, Text _Key) {
+	return TextLib::ToLowerCase(_JSON_Get(_Instance, _Key, Text[])) == "null";
+}
+/**
+ * Returns the Integer cast of the value at that key.
+ * Note that you might want to use GetText if you have to process exponents!
+ * @param Text _Instance A handle to a valid JSON Object.
+ * @param Text _Key      A key within that object.
+ */
+Integer JSON_GetInteger(Text _Instance, Text _Key) {
+	return TextLib::ToInteger(_JSON_Get(_Instance, _Key, [JSON_TYPE_NUMBER, JSON_TYPE_STRING]));
+}
+/**
+ * Returns the Real cast of the value at that key.
+ * Note that you might want to use GetText if you have to process exponents!
+ * @param Text _Instance A handle to a valid JSON Object.
+ * @param Text _Key      A key within that object.
+ */
+Real JSON_GetReal(Text _Instance, Text _Key) {
+	return TextLib::ToReal(_JSON_Get(_Instance, _Key, [JSON_TYPE_NUMBER, JSON_TYPE_STRING]));
+}
+Text _JSON_Get(Text _Instance, Integer _Offset, Text[] _Types) {
+	if (!JSON_IsArray(_Instance)) {
+		if (JSON_LogLevel >= JSON_LOGLEVEL_ERROR)
+			log("[ERROR][JSON] '" ^ _Instance ^ "' is not a valid JSON Array.");
+		return "";
+	}
+	declare Text[][Text] _JSON_ArrayValues for Page;
+	declare Text[Text][Text] _JSON_ValueTypes for Page;
+	if (!_JSON_ArrayValues.existskey(_Instance) || _JSON_ArrayValues[_Instance].count < _Offset && JSON_LogLevel >= JSON_LOGLEVEL_WARN)
+		log("[WARN][JSON] Invalid offset '" ^ _Offset ^ "' in array '" ^ _Instance ^ "'.");
+	else {
+		if (_Types.count == 0 || _Types.exists(_JSON_ValueTypes[_Instance][_Offset ^ ""]))
+			return _JSON_ArrayValues[_Instance][_Offset];
+		else {
+			if (JSON_LogLevel >= JSON_LOGLEVEL_WARN)
+				log("[WARN][JSON] The requested element is of type " ^ _JSON_ValueTypes[_Instance][_Offset ^ ""]);
+			return "";
+		}
+	}
+	return "";
+}
+/**
+ * Returns the value of a string value from a JSON Array.
+ * @param Text 		_Instance A handle to a valid JSON Array.
+ * @param Integer 	_Offset   An offset in that array.
+ */
+Text JSON_GetText(Text _Instance, Integer _Offset) {
+	return _JSON_Get(_Instance, _Offset, [JSON_TYPE_STRING, JSON_TYPE_NUMBER]);
+}
+/**
+ * Returns a handle of a JSON Object from a JSON Array.
+ * @param Text 		_Instance A handle to a valid JSON Array.
+ * @param Integer 	_Offset   An offset in that array.
+ * @returns Text 	Returns an empty String, if the value was not an object.
+ */
+Text JSON_GetObject(Text _Instance, Integer _Offset) {
+	return _JSON_Get(_Instance, _Offset, [JSON_TYPE_OBJECT]);
+}
+/**
+ * Returns a handle of a JSON Array from a JSON Array.
+ * @param Text 		_Instance A handle to a valid JSON Array.
+ * @param Integer 	_Offset   An offset in that array.
+ * @returns Text 	Returns an empty String, if the value was not an array.
+ */
+Text JSON_GetArray(Text _Instance, Integer _Offset) {
+	return _JSON_Get(_Instance, _Offset, [JSON_TYPE_ARRAY]);
+}
+/**
+ * Returns the boolean version of a value in a JSON Array. Notice that only /true/i will return True,
+ * everything else will return False.
+ * @param Text 		_Instance A handle to a valid JSON Array.
+ * @param Integer 	_Offset   An offset in that array.
+ */
+Boolean JSON_GetBoolean(Text _Instance, Integer _Offset) {
+	return TextLib::ToLowerCase(_JSON_Get(_Instance, _Offset, [JSON_TYPE_CONST])) == "true";
+}
+/**
+ * Returns if the requested value was null.
+ * @param Text 		_Instance A handle to a valid JSON Array.
+ * @param Integer 	_Offset   An offset in that array.
+ */
+Boolean JSON_IsNull(Text _Instance, Integer _Offset) {
+	return TextLib::ToLowerCase(_JSON_Get(_Instance, _Offset, Text[])) == "null";
+}
+/**
+ * Returns the Integer cast of the value at that key.
+ * Note that you might want to use GetText if you have to process exponents!
+ * @param Text 		_Instance A handle to a valid JSON Array.
+ * @param Integer 	_Offset   An offset in that array.
+ */
+Integer JSON_GetInteger(Text _Instance, Integer _Offset) {
+	return TextLib::ToInteger(_JSON_Get(_Instance, _Offset, [JSON_TYPE_NUMBER, JSON_TYPE_STRING]));
+}
+/**
+ * Returns the Real cast of the value at that key.
+ * Note that you might want to use GetText if you have to process exponents!
+ * @param Text 		_Instance A handle to a valid JSON Array.
+ * @param Integer 	_Offset   An offset in that array.
+ */
+Real JSON_GetReal(Text _Instance, Integer _Offset) {
+	return TextLib::ToReal(_JSON_Get(_Instance, _Offset, [JSON_TYPE_NUMBER, JSON_TYPE_STRING]));
+}
