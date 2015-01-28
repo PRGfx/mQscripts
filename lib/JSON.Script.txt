@@ -215,6 +215,7 @@ Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
 						if (TextLib::Find(const, TextLib::SubText(_Input, i, l), False, False)) {
 							i += l - 1;
 							currentValue = const;
+							_JSON_ValueTypes[ident][currentKey] = JSON_TYPE_CONST;
 							state = JSON_STATE_VALUE_END;
 						}
 					}
