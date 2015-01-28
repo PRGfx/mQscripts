@@ -17,7 +17,7 @@ Integer TStack_Size(Text _Instance) {
 }
 Boolean TStack_IsEmpty(Text _Instance) {
 	declare Integer[Text] TStackSize for Page;
-	if (TStackSize[_Instance] == )
+	if (TStackSize[_Instance] == 0)
 		return True;
 	return False;
 }
