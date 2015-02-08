@@ -1,0 +1,251 @@
+#Include "AnimLib" as AnimLib
+
+#Const MATERIAL_EVENT_INPUT_FOCUS		"MATERIAL_EVENT_INPUT_FOCUS"
+#Const MATERIAL_EVENT_INPUT_CHANGE		"MATERIAL_EVENT_INPUT_CHANGE"
+#Const MATERIAL_EVENT_INPUT_BLUR		"MATERIAL_EVENT_INPUT_BLUR"
+
+declare CMlFrame[Text] _Material_Input_Containers;
+declare Text[CMlControl] _Material_Input_ByChild;
+declare CMlEntry[Text] _Material_Input_Entries;
+declare CMlQuad[Text] _Material_Input_Overlays;
+declare CMlQuad[Text] _Material_Input_Lines;
+declare CMlLabel[Text] _Material_Input_Placeholders;
+declare CMlLabel[Text] _Material_Input_Hints;
+declare Boolean[Text] _Material_Input_Enabled;
+declare Text[Text] _Material_Input_Value;
+declare Text _Material_Input_Active;
+declare Real[Text] _Material_Input_OverlayElevation;
+declare Integer[CMlControl] _Material_Input_PlaceholderAnimationStart;
+declare Integer[CMlControl] _Material_Input_PlaceholderAnimationDirection;
+declare Boolean[CMlControl] _Material_Input_PlaceholderAnimationLock;
+declare CMlLabel[] _Material_Input_AnimatedPlaceholders;
+declare Integer _Material_Input_AnimationFrames;
+declare Integer _Material_Input_AnimationDuration;
+declare Vec3[Text] _Material_Input_CustomColors;
+
+Text _Material_Input_EntryValue(Text _FrameId) {
+	if (_Material_Input_Entries[_FrameId] is CMlTextEdit) {
+		declare CMlControl C = _Material_Input_Entries[_FrameId];
+		return (C as CMlTextEdit).Value;
+	}
+	return _Material_Input_Entries[_FrameId].Value;
+}
+Void _Material_Input_EntryValue(Text _FrameId, Text _Value) {
+	if (_Material_Input_Entries[_FrameId] is CMlTextEdit) {
+		declare CMlControl C = _Material_Input_Entries[_FrameId];
+		(C as CMlTextEdit).Value = _Value;
+	} else
+		_Material_Input_Entries[_FrameId].Value = _Value;
+}
+Void _Material_Input_StartEdition(Text _FrameId) {
+	if (_Material_Input_Entries[_FrameId] is CMlTextEdit) {
+		declare CMlControl C = _Material_Input_Entries[_FrameId];
+		(C as CMlTextEdit).StartEdition();
+	} else
+		_Material_Input_Entries[_FrameId].StartEdition();
+}
+Void _Material_Input_Visibility(Text _FrameId) {	
+	if (_Material_Input_EntryValue(_FrameId) == "") {
+		_Material_Input_Entries[_FrameId].Hide();
+		if (_Material_Input_Placeholders[_FrameId] != Null) {
+			_Material_Input_Placeholders[_FrameId].RelativeScale = 1.0;
+			_Material_Input_Placeholders[_FrameId].RelativePosition.Y = _Material_Input_Entries[_FrameId].RelativePosition.Y;
+		}
+	} else {
+		_Material_Input_Entries[_FrameId].Show();
+		if (_Material_Input_Placeholders[_FrameId] != Null) {
+			_Material_Input_Placeholders[_FrameId].RelativeScale = 0.7;
+			_Material_Input_Placeholders[_FrameId].RelativePosition.Y = 3.5 + _Material_Input_Entries[_FrameId].RelativePosition.Y;
+		}
+	}
+}
+Void Material_Input_Enable(Text _FrameId) {
+	_Material_Input_Enabled[_FrameId] = True;
+	if (_Material_Input_Placeholders[_FrameId] != Null) {
+		_Material_Input_Placeholders[_FrameId].Opacity = 1.;
+	}
+}
+Void Material_Input_Disable(Text _FrameId) {
+	_Material_Input_Enabled[_FrameId] = False;
+	if (_Material_Input_Placeholders[_FrameId] != Null) {
+		_Material_Input_Placeholders[_FrameId].Opacity = .4;
+	}
+}
+Boolean Material_Input_Enabled(Text _FrameId) {
+	if (_Material_Input_Enabled.existskey(_FrameId))
+		return _Material_Input_Enabled[_FrameId];
+	return False;
+}
+Void Material_Input_Create(Text _FrameId) {
+	declare Vec3 hintcolor = TextLib::ToColor("999");
+	_Material_Input_Containers[_FrameId] = (Page.GetFirstChild(_FrameId) as CMlFrame);
+	foreach (Control in _Material_Input_Containers[_FrameId].Controls) {
+		if (Control is CMlEntry) _Material_Input_Entries[_FrameId] = (Control as CMlEntry);
+		else if (Control is CMlTextEdit) _Material_Input_Entries[_FrameId] = (Control as CMlEntry);
+		else if (Control.HasClass("Material_Input_Line")) _Material_Input_Lines[_FrameId] = (Control as CMlQuad);
+		else if (Control.HasClass("Material_Input_Overlay")) _Material_Input_Overlays[_FrameId] = (Control as CMlQuad);
+		else if (Control.HasClass("Material_Input_Placeholder")) _Material_Input_Placeholders[_FrameId] = (Control as CMlLabel);
+		else if (Control.HasClass("Material_Input_Hint")) _Material_Input_Hints[_FrameId] = (Control as CMlLabel);
+	}
+	if (!_Material_Input_Placeholders.existskey(_FrameId)) _Material_Input_Placeholders[_FrameId] = Null;
+	else {
+		_Material_Input_Placeholders[_FrameId].RelativePosition = _Material_Input_Entries[_FrameId].RelativePosition;
+		_Material_Input_Placeholders[_FrameId].Size = _Material_Input_Entries[_FrameId].Size;
+		_Material_Input_Placeholders[_FrameId].TextColor = hintcolor;
+		_Material_Input_Placeholders[_FrameId].TextSize = 2;
+		_Material_Input_ByChild[_Material_Input_Placeholders[_FrameId]] = _FrameId;
+	}
+	_Material_Input_Enabled[_FrameId] = True;
+	if (_Material_Input_Containers[_FrameId].DataAttributeExists("enabled") && _Material_Input_Containers[_FrameId].DataAttributeGet("enabled") == "false")
+		Material_Input_Disable(_FrameId);
+	if (_Material_Input_Containers[_FrameId].DataAttributeExists("color"))
+		_Material_Input_CustomColors[_FrameId] = TextLib::ToColor(_Material_Input_Containers[_FrameId].DataAttributeGet("color"));
+	_Material_Input_Value[_FrameId] = _Material_Input_EntryValue(_FrameId);
+	if (_Material_Input_Entries[_FrameId] is CMlEntry)
+		_Material_Input_Entries[_FrameId].Size[1] = 4.6;
+	_Material_Input_Entries[_FrameId].Hide();
+	_Material_Input_Entries[_FrameId].VerticalAlign = CMlControl::AlignVertical::Top;
+	_Material_Input_Entries[_FrameId].HorizontalAlign = CMlControl::AlignHorizontal::Left;
+	if (!_Material_Input_Hints.existskey(_FrameId)) _Material_Input_Hints[_FrameId] = Null;
+	else {
+		_Material_Input_Hints[_FrameId].RelativePosition.Y = _Material_Input_Entries[_FrameId].RelativePosition.Y - _Material_Input_Entries[_FrameId].Size[1] - 1;
+		_Material_Input_Hints[_FrameId].RelativePosition.X = _Material_Input_Entries[_FrameId].RelativePosition.X;
+		_Material_Input_Hints[_FrameId].HorizontalAlign = CMlControl::AlignHorizontal::Left;
+		_Material_Input_Hints[_FrameId].TextSize = 1;
+		_Material_Input_Hints[_FrameId].TextColor = Material_Color_Lighten(<0.1, 0.1, 0.1>, .2);
+		_Material_Input_Hints[_FrameId].Hide();
+	}
+	_Material_Input_Lines[_FrameId].BgColor = TextLib::ToColor("BBB");
+	_Material_Input_Lines[_FrameId].Size[0] = _Material_Input_Entries[_FrameId].Size[0];
+	_Material_Input_Lines[_FrameId].Size[1] = 0.2;
+	_Material_Input_Lines[_FrameId].RelativePosition = _Material_Input_Entries[_FrameId].RelativePosition;
+	_Material_Input_Lines[_FrameId].RelativePosition[1] -= _Material_Input_Entries[_FrameId].Size[1];
+	_Material_Input_Lines[_FrameId].RelativePosition[2] += 1;
+	_Material_Input_Overlays[_FrameId].Size = _Material_Input_Entries[_FrameId].Size;
+	_Material_Input_Overlays[_FrameId].RelativePosition = _Material_Input_Entries[_FrameId].RelativePosition;
+	_Material_Input_Overlays[_FrameId].RelativePosition.Z += 1;
+	_Material_Input_ByChild[_Material_Input_Overlays[_FrameId]] = _FrameId;
+	_Material_Input_Visibility(_FrameId);
+}
+Void _Material_Input_Focus(Text _FrameId) {
+	_Material_Input_AnimationDuration = 200;
+	_Material_Input_AnimationFrames = 20;
+	declare Vec3 Color = Material_ColorAccent();
+	if (_Material_Input_CustomColors.existskey(_FrameId)) Color = _Material_Input_CustomColors[_FrameId];
+	if (_Material_Input_Enabled[_FrameId]) {
+		_Material_Input_Lines[_FrameId].BgColor = Color;
+		_Material_Input_Lines[_FrameId].Size[1] = 0.3;
+		_Material_Input_OverlayElevation[_FrameId] = 75 - _Material_Input_Entries[_FrameId].RelativePosition.Z;
+		_Material_Input_Entries[_FrameId].RelativePosition.Z += _Material_Input_OverlayElevation[_FrameId];
+		_Material_Input_Entries[_FrameId].Show();
+		_Material_Input_StartEdition(_FrameId);
+		_Material_Input_Active = _FrameId;
+		Page.GetFirstChild("Material_Inputs_Overlay").Show();
+		Material_SendEvent(MATERIAL_EVENT_INPUT_FOCUS, ["ControlId"=>_FrameId]);
+		if (_Material_Input_Placeholders[_FrameId] != Null) {
+			if (_Material_Input_EntryValue(_FrameId) == "") {
+				_Material_Input_PlaceholderAnimationStart[_Material_Input_Placeholders[_FrameId]] = Now;
+				_Material_Input_PlaceholderAnimationDirection[_Material_Input_Placeholders[_FrameId]] = -1;
+				_Material_Input_PlaceholderAnimationLock[_Material_Input_Placeholders[_FrameId]] = True;
+				_Material_Input_AnimatedPlaceholders.add(_Material_Input_Placeholders[_FrameId]);				
+			} else {
+				_Material_Input_Placeholders[_FrameId].TextColor = Color;
+			}
+		}
+		if (_Material_Input_Hints[_FrameId] != Null) _Material_Input_Hints[_FrameId].Show();
+	}
+}
+Void _Material_Input_Blur() {
+	if (_Material_Input_Active != "") {
+		declare Text _FrameId = _Material_Input_Active;
+		Page.GetFirstChild("Material_Inputs_Overlay").Hide();
+		if (_Material_Input_EntryValue(_FrameId) != _Material_Input_Value[_FrameId]) {
+			_Material_Input_Value[_FrameId] = _Material_Input_EntryValue(_FrameId);
+			Material_SendEvent(MATERIAL_EVENT_INPUT_CHANGE, ["ControlId"=>_FrameId, "Value"=>_Material_Input_Value[_FrameId]]);
+		}
+		Material_SendEvent(MATERIAL_EVENT_INPUT_BLUR, ["ControlId"=>_FrameId]);
+		_Material_Input_Entries[_FrameId].RelativePosition.Z -= _Material_Input_OverlayElevation[_FrameId];
+		_Material_Input_Lines[_FrameId].BgColor = TextLib::ToColor("BBB");
+		_Material_Input_Lines[_FrameId].Size[1] = 0.2;
+		if (_Material_Input_EntryValue(_FrameId) == "") {
+			_Material_Input_Entries[_FrameId].Hide();
+			if (_Material_Input_Placeholders[_FrameId] != Null) {
+				_Material_Input_PlaceholderAnimationStart[_Material_Input_Placeholders[_FrameId]] = Now;
+				_Material_Input_PlaceholderAnimationDirection[_Material_Input_Placeholders[_FrameId]] = 1;
+				_Material_Input_PlaceholderAnimationLock[_Material_Input_Placeholders[_FrameId]] = True;
+				_Material_Input_AnimatedPlaceholders.add(_Material_Input_Placeholders[_FrameId]);
+			}
+		}
+		if (_Material_Input_Placeholders[_FrameId] != Null) {
+			_Material_Input_Placeholders[_FrameId].TextColor = TextLib::ToColor("999");
+		}
+		if (_Material_Input_Hints[_FrameId] != Null) _Material_Input_Hints[_FrameId].Hide();
+	}
+}
+***Material_EventLoop***
+***
+if (Event.Control != Null) {
+	if (Event.Control.HasClass("Material_Input_Overlay") && Event.Type == CMlEvent::Type::MouseClick) {
+		_Material_Input_Focus(_Material_Input_ByChild[Event.Control]);
+	}
+	if (Event.Type == CMlEvent::Type::EntrySubmit && _Material_Input_Entries.exists((Event.Control as CMlEntry))) {
+		_Material_Input_Blur();
+	}
+	if (_Material_Input_Active != "" && Event.ControlId == "Material_Inputs_Overlay" && Event.Type == CMlEvent::Type::MouseOver) {
+		_Material_Input_Blur();
+	}
+}
+***
+***Material_AnimationLoop***
+***
+foreach (Placeholder in _Material_Input_AnimatedPlaceholders) {
+	declare Integer step = (Now - _Material_Input_PlaceholderAnimationStart[Placeholder]) * _Material_Input_AnimationFrames / _Material_Input_AnimationDuration;
+	Placeholder.RelativeScale += _Material_Input_PlaceholderAnimationDirection[Placeholder] * AnimLib::EaseLinear(step, 0.0, 0.7/_Material_Input_AnimationFrames, _Material_Input_AnimationFrames);
+	Placeholder.RelativePosition.Y += -1 * _Material_Input_PlaceholderAnimationDirection[Placeholder] * AnimLib::EaseLinear(step, 0.0, 7.4/_Material_Input_AnimationFrames, _Material_Input_AnimationFrames);
+	if (Now - _Material_Input_PlaceholderAnimationStart[Placeholder] >= _Material_Input_AnimationDuration || 
+		(_Material_Input_PlaceholderAnimationDirection[Placeholder] == 1 && Placeholder.RelativeScale>=1.) || 
+		(_Material_Input_PlaceholderAnimationDirection[Placeholder] == -1 && Placeholder.RelativeScale<=0.7)) {
+		_Material_Input_AnimatedPlaceholders.remove(Placeholder);
+		_Material_Input_PlaceholderAnimationLock[Placeholder] = False;
+		if (_Material_Input_PlaceholderAnimationDirection[Placeholder] == -1) {
+			if (_Material_Input_CustomColors.existskey(_Material_Input_ByChild[Placeholder])) Placeholder.TextColor = _Material_Input_CustomColors[_Material_Input_ByChild[Placeholder]];
+			else Placeholder.TextColor = Material_ColorAccent();
+			Placeholder.RelativeScale = 0.7;		
+		} else {			
+			Placeholder.RelativeScale = 1.;
+		}
+	}
+}
+***
+Text Material_Input_Value(Text _FrameId) {
+	return _Material_Input_EntryValue(_FrameId);
+}
+Void Material_Input_Value(Text _FrameId, Text _Value) {
+	_Material_Input_Value[_FrameId] = _Value;
+	_Material_Input_EntryValue(_FrameId, _Value);
+	_Material_Input_Visibility(_FrameId);
+}
+Text Material_Input_PlaceholderValue(Text _FrameId) {
+	if (_Material_Input_Placeholders[_FrameId] != Null)
+		return _Material_Input_Placeholders[_FrameId].Value;
+	return "";
+}
+Void Material_Input_PlaceholderValue(Text _FrameId, Text _Value) {
+	if (_Material_Input_Placeholders[_FrameId] != Null)
+	_Material_Input_Placeholders[_FrameId].Value = _Value;
+}
+Text Material_Input_HintValue(Text _FrameId) {
+	if (_Material_Input_Hints[_FrameId] != Null)
+		return _Material_Input_Hints[_FrameId].Value;
+	return "";
+}
+Void Material_Input_HintValue(Text _FrameId, Text _Value) {
+	if (_Material_Input_Hints[_FrameId] != Null)
+	_Material_Input_Hints[_FrameId].Value = _Value;
+}
+Void Material_Input_SetColor(Text _FrameId, Vec3 _Color) {
+	_Material_Input_CustomColors[_FrameId] = _Color;
+}
+Void Material_Input_SetColor(Text _FrameId, CMlControl _Null) {
+	_Material_Input_CustomColors.removekey(_FrameId);
+}

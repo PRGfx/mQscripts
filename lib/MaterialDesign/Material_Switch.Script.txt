@@ -1,0 +1,155 @@
+#Include "AnimLib" as AnimLib
+
+#Const MATERIAL_EVENT_SWITCH_CHANGED 	"MATERIAL_EVENT_SWITCH_CHANGED"
+
+declare CMlFrame[Text] _Material_Switch_Containers;
+declare Text[CMlControl] _Material_Switch_ByChild;
+declare CMlQuad[Text] _Material_Switch_Backgrounds;
+declare CMlQuad[Text] _Material_Switch_Handles;
+declare Boolean[Text] _Material_Switch_Enabled;
+declare Boolean[Text] _Material_Switch_Active;
+declare Vec3[Text] _Material_Switch_CustomColors;
+declare Vec3[Text] _Material_Switch_ColorAnimation_Start1;
+declare Vec3[Text] _Material_Switch_ColorAnimation_Start2;
+declare Vec3[Text] _Material_Switch_ColorAnimation_Distance1;
+declare Vec3[Text] _Material_Switch_ColorAnimation_Distance2;
+declare Integer[CMlControl] _Material_Switch_HandleAnimationStart;
+declare Integer[CMlControl] _Material_Switch_HandleAnimationDirection;
+declare Boolean[CMlControl] _Material_Switch_HandleAnimationLock;
+declare CMlQuad[] _Material_Switch_AnimatedHandles;
+declare Integer _Material_Switch_AnimationFrames;
+declare Integer _Material_Switch_AnimationDuration;
+Boolean Material_Switch_Active(Text _FrameId) {
+	return _Material_Switch_Active[_FrameId];
+}
+Void Material_Switch_Active(Text _FrameId, Boolean _Active) {
+	_Material_Switch_Active[_FrameId] = _Active;
+	if (_Active) {
+		declare Vec3 Color = Material_ColorAccent();
+		if (_Material_Switch_CustomColors.existskey(_FrameId)) Color = _Material_Switch_CustomColors[_FrameId];
+		_Material_Switch_Handles[_FrameId].RelativePosition.X = 3.5;
+		if (_Material_Switch_Enabled[_FrameId]) {
+			_Material_Switch_Handles[_FrameId].Colorize = Color;
+			_Material_Switch_Backgrounds[_FrameId].Colorize = Material_Color_Lighten(Color, .5);
+		}
+	} else {
+		_Material_Switch_Handles[_FrameId].RelativePosition.X = -1.;
+		if (_Material_Switch_Enabled[_FrameId]) {
+			_Material_Switch_Handles[_FrameId].Colorize = TextLib::ToColor("FFF");
+			_Material_Switch_Backgrounds[_FrameId].Colorize = TextLib::ToColor("888");
+		}
+	}
+	if (!_Material_Switch_Enabled[_FrameId]) {
+		_Material_Switch_Handles[_FrameId].Colorize = TextLib::ToColor("BDBDBD");
+		_Material_Switch_Backgrounds[_FrameId].Colorize = TextLib::ToColor("CCC");
+	}
+}
+Void Material_Switch_Enabled(Text _FrameId, Boolean _Enabled) {
+	_Material_Switch_Enabled[_FrameId] = _Enabled;
+	Material_Switch_Active(_FrameId, _Material_Switch_Active[_FrameId]);
+}
+Boolean Material_Switch_Enabled(Text _FrameId) {
+	return _Material_Switch_Enabled[_FrameId];
+}
+Void Material_Switch_Enable(Text _FrameId) {
+	Material_Switch_Enabled(_FrameId, True);
+}
+Void Material_Switch_Disable(Text _FrameId) {
+	Material_Switch_Enabled(_FrameId, False);
+}
+Void Material_Switch_Create(Text _FrameId) {
+	declare Vec3 hintcolor = TextLib::ToColor("999");
+	_Material_Switch_Containers[_FrameId] = (Page.GetFirstChild(_FrameId) as CMlFrame);
+	declare CMlQuad Background = Null;
+	declare CMlQuad Handle = Null;
+	foreach (Control in _Material_Switch_Containers[_FrameId].Controls) {
+		if (Control.HasClass("Material_Switch_Background")) Background = (Control as CMlQuad);
+		else if (Control.HasClass("Material_Switch_Handle")) Handle = (Control as CMlQuad);
+	}
+	if (Background != Null && Handle != Null) {
+		_Material_Switch_Backgrounds[_FrameId] = Background;
+		_Material_Switch_ByChild[Background] = _FrameId;
+		_Material_Switch_Handles[_FrameId] = Handle;
+		_Material_Switch_ByChild[Handle] = _FrameId;
+	}
+	Background.Style = "Bgs1";
+	Background.Substyle = "HealthBar";
+	Background.Size = <9., 4.>;
+	Background.RelativeScale = 0.8;
+	Background.RelativePosition = <1., -1.8, 0.>;
+	Background.Colorize = TextLib::ToColor("888");
+
+	Handle.Style = "Bgs1";
+	Handle.Substyle = "BgTitle3_3";
+	Handle.Size = <10., 10.>;
+	Handle.RelativeScale = 0.7;
+	Handle.RelativePosition = <-1., 0., 1.>;
+	Handle.Colorize = TextLib::ToColor("FFF");
+
+	_Material_Switch_Enabled[_FrameId] = !(_Material_Switch_Containers[_FrameId].DataAttributeExists("enabled") && _Material_Switch_Containers[_FrameId].DataAttributeGet("enabled")=="false");
+	_Material_Switch_Active[_FrameId] = (_Material_Switch_Containers[_FrameId].DataAttributeExists("active") && _Material_Switch_Containers[_FrameId].DataAttributeGet("active")=="true");
+	if (_Material_Switch_Containers[_FrameId].DataAttributeExists("color"))
+		_Material_Switch_CustomColors[_FrameId] = TextLib::ToColor(_Material_Switch_Containers[_FrameId].DataAttributeGet("color"));
+	Material_Switch_Active(_FrameId, _Material_Switch_Active[_FrameId]);
+	_Material_Switch_HandleAnimationLock[Handle] = False;
+}
+***Material_EventLoop***
+***
+if (Event.Control != Null) {
+	if ((Event.Control.HasClass("Material_Switch_Handle") || Event.Control.HasClass("Material_Switch_Background")) && Event.Type == CMlEvent::Type::MouseClick) {
+		Material_Switch_Change(_Material_Switch_ByChild[Event.Control]);
+	}
+}
+***
+***Material_AnimationLoop***
+***
+foreach (Handle in _Material_Switch_AnimatedHandles) {
+	declare Integer step = (Now - _Material_Switch_HandleAnimationStart[Handle]) * _Material_Switch_AnimationFrames / _Material_Switch_AnimationDuration;
+	Handle.RelativePosition.X += _Material_Switch_HandleAnimationDirection[Handle] * AnimLib::EaseInOutCubic(step, 0.0, 4.5/_Material_Switch_AnimationFrames, _Material_Switch_AnimationFrames);
+	Handle.RelativePosition.Y = .0 - 0.1 * MathLib::Sin(1. * step / _Material_Switch_AnimationFrames * MathLib::PI());
+	Handle.RelativeScale = 0.7 - 0.03 * MathLib::Sin(1. * step / _Material_Switch_AnimationFrames * MathLib::PI());
+	Handle.Colorize = _Material_Switch_ColorAnimation_Start1[_Material_Switch_ByChild[Handle]] + _Material_Switch_ColorAnimation_Distance1[_Material_Switch_ByChild[Handle]] * (-1. * (Now - _Material_Switch_HandleAnimationStart[Handle]) / _Material_Switch_AnimationDuration);
+	_Material_Switch_Backgrounds[_Material_Switch_ByChild[Handle]].Colorize = _Material_Switch_ColorAnimation_Start2[_Material_Switch_ByChild[Handle]] + _Material_Switch_ColorAnimation_Distance2[_Material_Switch_ByChild[Handle]] * (-1. * (Now - _Material_Switch_HandleAnimationStart[Handle]) / _Material_Switch_AnimationDuration);
+	if (Now - _Material_Switch_HandleAnimationStart[Handle] >= _Material_Switch_AnimationDuration) {
+		_Material_Switch_AnimatedHandles.remove(Handle);
+		_Material_Switch_HandleAnimationLock[Handle] = False;
+		Material_Switch_Active(_Material_Switch_ByChild[Handle], !_Material_Switch_Active[_Material_Switch_ByChild[Handle]]);
+		Material_SendEvent(MATERIAL_EVENT_SWITCH_CHANGED, ["ControlId"=>_Material_Switch_ByChild[Handle], "Value"=>TextLib::ToText(_Material_Switch_Active[_Material_Switch_ByChild[Handle]])]);
+	}
+}
+***
+Void Material_Switch_Change(Text _FrameId) {
+	if (_Material_Switch_Enabled[_FrameId] && !_Material_Switch_HandleAnimationLock[_Material_Switch_Handles[_FrameId]]) {
+		_Material_Switch_AnimationFrames = 25;
+		_Material_Switch_AnimationDuration = 400;
+		_Material_Switch_AnimatedHandles.add(_Material_Switch_Handles[_FrameId]);
+		declare Integer Direction;
+		declare Vec3 Color1;
+		declare Vec3 Color2;
+		if (_Material_Switch_Active[_FrameId]) {
+			Direction = -1;
+			Color1 = TextLib::ToColor("FFF");
+			Color2 = TextLib::ToColor("888");
+		} else {
+			Direction = 1;
+			Color1 = Material_ColorAccent();
+			if (_Material_Switch_CustomColors.existskey(_FrameId)) Color1 = _Material_Switch_CustomColors[_FrameId];
+			Color2 = Material_Color_Lighten(Color1, .5);			
+		}
+		_Material_Switch_HandleAnimationDirection[_Material_Switch_Handles[_FrameId]] = Direction;
+		_Material_Switch_HandleAnimationLock[_Material_Switch_Handles[_FrameId]] = True;
+		_Material_Switch_HandleAnimationStart[_Material_Switch_Handles[_FrameId]] = Now;
+		_Material_Switch_ColorAnimation_Distance1[_FrameId] = (_Material_Switch_Handles[_FrameId].Colorize - Color1);
+		_Material_Switch_ColorAnimation_Start1[_FrameId] = _Material_Switch_Handles[_FrameId].Colorize;
+		_Material_Switch_ColorAnimation_Distance2[_FrameId] = (_Material_Switch_Backgrounds[_FrameId].Colorize - Color2);
+		_Material_Switch_ColorAnimation_Start2[_FrameId] = _Material_Switch_Backgrounds[_FrameId].Colorize;
+	}
+}
+Void Material_Switch_SetColor(Text _FrameId, Vec3 _Color) {
+	_Material_Switch_CustomColors[_FrameId] = _Color;
+	Material_Switch_Active(_FrameId, _Material_Switch_Active[_FrameId]);
+}
+Void Material_Switch_SetColor(Text _FrameId, CMlControl _Null) {
+	_Material_Switch_CustomColors.removekey(_FrameId);
+	Material_Switch_Active(_FrameId, _Material_Switch_Active[_FrameId]);
+}

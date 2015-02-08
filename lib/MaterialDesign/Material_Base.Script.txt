@@ -1,0 +1,196 @@
+#Include "TextLib" as TextLib
+#Include "MathLib" as MathLib
+
+/********************* Math *********************/
+Real _Material_Math_Max(Real _A1, Real _A2) {
+	if (_A1 >= _A2) return _A1; return _A2;
+}
+Real _Material_Math_Min(Real _A1, Real _A2) {
+	if (_A1 <= _A2) return _A1; return _A2;
+}
+Real _Material_Math_Max(Vec2 _A1) {
+	return _Material_Math_Max(_A1.X, _A1.Y);
+}
+Real _Material_Math_Min(Vec2 _A1) {
+	return _Material_Math_Min(_A1.X, _A1.Y);
+}
+Real _Material_Math_Max(Real _A1, Real _A2, Real _A3) {
+	if (_A1 >= _A2 && _A1 >= _A3) return _A1;
+	if (_A2 >= _A1 && _A2 >= _A3) return _A2;
+	return _A3;
+}
+Real _Material_Math_Min(Real _A1, Real _A2, Real _A3) {
+	if (_A1 <= _A2 && _A1 <= _A3) return _A1;
+	if (_A2 <= _A1 && _A2 <= _A3) return _A2;
+	return _A3;
+}
+Real _Material_Math_Max(Vec3 _A1) {
+	return _Material_Math_Max(_A1.X, _A1.Y, _A1.Z);
+}
+Real _Material_Math_Min(Vec3 _A1) {
+	return _Material_Math_Min(_A1.X, _A1.Y, _A1.Z);
+}
+Real _Material_Math_Boundaries(Real _Value, Real _Lower, Real _Upper) {
+	return _Material_Math_Min(_Material_Math_Max(_Lower, _Value), _Upper);
+}
+Real _Material_Math_Mod(Real _Value, Integer _Mod) {
+	declare V = _Value;
+	if (_Value > 0) {
+		if (V > _Mod) {
+			while (V > _Mod) V -= _Mod;
+		}
+		return V;
+	}
+	while (V < 0) V += _Mod;
+	return V;
+}
+
+Integer _Material_Math_Max(Integer _A1, Integer _A2) {
+	if (_A1 >= _A2) return _A1; return _A2;
+}
+Integer _Material_Math_Min(Integer _A1, Integer _A2) {
+	if (_A1 <= _A2) return _A1; return _A2;
+}
+Integer _Material_Math_Max(Integer _A1, Integer _A2, Integer _A3) {
+	if (_A1 >= _A2 && _A1 >= _A3) return _A1;
+	if (_A2 >= _A1 && _A2 >= _A3) return _A2;
+	return _A3;
+}
+Integer _Material_Math_Min(Integer _A1, Integer _A2, Integer _A3) {
+	if (_A1 <= _A2 && _A1 <= _A3) return _A1;
+	if (_A2 <= _A1 && _A2 <= _A3) return _A2;
+	return _A3;
+}
+Integer _Material_Math_Max(Int3 _A1) {
+	return _Material_Math_Max(_A1.X, _A1.Y, _A1.Z);
+}
+Integer _Material_Math_Min(Int3 _A1) {
+	return _Material_Math_Min(_A1.X, _A1.Y, _A1.Z);
+}
+Integer _Material_Math_Boundaries(Integer _Value, Integer _Lower, Integer _Upper) {
+	return _Material_Math_Min(_Material_Math_Max(_Lower, _Value), _Upper);
+}
+
+
+/********************* Color ********************/
+Vec3 _Material_Color_Boundarize(Vec3 _RGB) {
+	declare Vec3 Fixed = _RGB;
+	Fixed.X = _Material_Math_Boundaries(Fixed.X, 0., 1.);
+	Fixed.Y = _Material_Math_Boundaries(Fixed.Y, 0., 1.);
+	Fixed.Z = _Material_Math_Boundaries(Fixed.Z, 0., 1.);
+	return Fixed;
+}
+Vec3 Material_Color_Darken(Vec3 _Color, Real _Power) {
+	declare Vec3 NewColor = _Color;
+	NewColor.X *= 1 - _Power;
+	NewColor.Y *= 1 - _Power;
+	NewColor.Z *= 1 - _Power;
+	return _Material_Color_Boundarize(NewColor);
+}
+Vec3 Material_Color_Lighten(Vec3 _Color, Real _Power) {
+	declare Vec3 NewColor = _Color;
+	NewColor.X *= 1 + _Power;
+	NewColor.Y *= 1 + _Power;
+	NewColor.Z *= 1 + _Power;
+	return _Material_Color_Boundarize(NewColor);
+}
+/**
+ * http://www.google.com/design/spec/style/color.html#color-color-palette
+ */
+Text Material_Color_Palette(Text _Name, Integer _Step) {
+	declare Text[][Text] Palettes = Text[][Text];
+	Palettes["red"] = ["#FFEBEE", "#FFCDD2", "#EF9A9A", "#E57373", "#EF5350", "#F44336", "#E53935", "#D32F2F", "#C62828", "#B71C1C", "#FF8A80", "#FF5252", "#FF1744", "#D50000"];
+	Palettes["pink"] = ["#FCE4EC", "#F8BBD0", "#F48FB1", "#F06292", "#EC407A", "#E91E63", "#D81B60", "#C2185B", "#AD1457", "#880E4F", "#FF80AB", "#FF4081", "#F50057", "#C51162"];
+	Palettes["purple"] = ["#F3E5F5", "#E1BEE7", "#CE93D8", "#BA68C8", "#AB47BC", "#9C27B0", "#8E24AA", "#7B1FA2", "#6A1B9A", "#4A148C", "#EA80FC", "#E040FB", "#D500F9", "#AA00FF"];
+	Palettes["deeppurple"] = ["#EDE7F6", "#D1C4E9", "#B39DDB", "#9575CD", "#7E57C2", "#673AB7", "#5E35B1", "#512DA8", "#4527A0", "#311B92", "#B388FF", "#7C4DFF", "#651FFF", "#6200EA"];
+	Palettes["indigo"] = ["#E8EAF6", "#C5CAE9", "#9FA8DA", "#7986CB", "#5C6BC0", "#3F51B5", "#3949AB", "#303F9F", "#283593", "#1A237E", "#8C9EFF", "#536DFE", "#3D5AFE", "#304FFE"];
+	Palettes["blue"] = ["#E3F2FD", "#BBDEFB", "#90CAF9", "#64B5F6", "#42A5F5", "#2196F3", "#1E88E5", "#1976D2", "#1565C0", "#0D47A1", "#82B1FF", "#448AFF", "#2979FF", "#2962FF"];
+	Palettes["lightblue"] = ["#03A9F4", "#E1F5FE", "#B3E5FC", "#81D4FA", "#4FC3F7", "#29B6F6", "#03A9F4", "#039BE5", "#0288D1", "#0277BD", "#01579B", "#80D8FF", "#40C4FF", "#00B0FF", "#0091EA"];
+	Palettes["cyan"] = ["#E0F7FA", "#B2EBF2", "#80DEEA", "#4DD0E1", "#26C6DA", "#00BCD4", "#00ACC1", "#0097A7", "#00838F", "#006064", "#84FFFF", "#18FFFF", "#00E5FF", "#00B8D4"];
+	Palettes["teal"] = ["#E0F2F1", "#B2DFDB", "#80CBC4", "#4DB6AC", "#26A69A", "#009688", "#00897B", "#00796B", "#00695C", "#004D40", "#A7FFEB", "#64FFDA", "#1DE9B6", "#00BFA5"];
+	Palettes["green"] = ["#E8F5E9", "#C8E6C9", "#A5D6A7", "#81C784", "#66BB6A", "#4CAF50", "#43A047", "#388E3C", "#2E7D32", "#1B5E20", "#B9F6CA", "#69F0AE", "#00E676", "#00C853"];
+	Palettes["lightgreen"] = ["#F1F8E9", "#DCEDC8", "#C5E1A5", "#AED581", "#9CCC65", "#8BC34A", "#7CB342", "#689F38", "#558B2F", "#33691E", "#CCFF90", "#B2FF59", "#76FF03", "#64DD17"];
+	Palettes["lime"] = ["#F9FBE7", "#F0F4C3", "#E6EE9C", "#DCE775", "#D4E157", "#CDDC39", "#C0CA33", "#AFB42B", "#9E9D24", "#827717", "#F4FF81", "#EEFF41", "#C6FF00", "#AEEA00"];
+	Palettes["yellow"] = ["#FFFDE7", "#FFF9C4", "#FFF59D", "#FFF176", "#FFEE58", "#FFEB3B", "#FDD835", "#FBC02D", "#F9A825", "#F57F17", "#FFFF8D", "#FFFF00", "#FFEA00", "#FFD600"];
+	Palettes["amber"] = ["#FFF8E1", "#FFECB3", "#FFE082", "#FFD54F", "#FFCA28", "#FFC107", "#FFB300", "#FFA000", "#FF8F00", "#FF6F00", "#FFE57F", "#FFD740", "#FFC400", "#FFAB00"];
+	Palettes["orange"] = ["#FFF3E0", "#FFE0B2", "#FFCC80", "#FFB74D", "#FFA726", "#FF9800", "#FB8C00", "#F57C00", "#EF6C00", "#E65100", "#FFD180", "#FFAB40", "#FF9100", "#FF6D00"];
+	Palettes["deeporange"] = ["#FBE9E7", "#FFCCBC", "#FFAB91", "#FF8A65", "#FF7043", "#FF5722", "#F4511E", "#E64A19", "#D84315", "#BF360C", "#FF9E80", "#FF6E40", "#FF3D00", "#DD2C00"];
+	Palettes["brown"] = ["#EFEBE9", "#D7CCC8", "#BCAAA4", "#A1887F", "#8D6E63", "#795548", "#6D4C41", "#5D4037", "#4E342E", "#3E2723"];
+	Palettes["grey"] = ["#FAFAFA", "#F5F5F5", "#EEEEEE", "#E0E0E0", "#BDBDBD", "#9E9E9E", "#757575", "#616161", "#424242", "#212121"];
+	Palettes["bluegrey"] = ["#ECEFF1", "#CFD8DC", "#B0BEC5", "#90A4AE", "#78909C", "#607D8B", "#546E7A", "#455A64", "#37474F", "#263238"];
+	+++Material_Color_Palettes+++
+	declare Name = TextLib::ToLowerCase(_Name);
+	if (Palettes.existskey(Name)) {
+		return Palettes[Name][_Material_Math_Min(_Step / 100, Palettes[Name].count - 1)];
+	}
+	return "#000000";
+}
+Text Material_Color_Palette(Text _Name) {
+	declare Name = TextLib::ToLowerCase(_Name);
+	if (Name == "white") return "#FFFFFF";
+	if (Name == "black") return "#000000";
+	return Material_Color_Palette(Name, 500);
+}
+Vec3 Material_Color_PaletteVec(Text _Name, Integer _Step) {
+	return TextLib::ToColor(TextLib::SubText(Material_Color_Palette(_Name, _Step), 1, 6));
+}
+Vec3 Material_Color_PaletteVec(Text _Name) {
+	return TextLib::ToColor(TextLib::SubText(Material_Color_Palette(_Name), 1, 6));
+}
+declare Vec3 _Material_ColorAccent;
+declare Boolean _Material_ColorAccent_Set;
+declare Vec3 _Material_ColorPrimary;
+declare Boolean _Material_ColorPrimary_Set;
+declare Vec3 _Material_ColorPrimaryDark;
+declare Boolean _Material_ColorPrimaryDark_Set;
+Void Material_ColorAccent(Vec3 _Value) {
+	_Material_ColorAccent = _Value;
+	_Material_ColorAccent_Set = True;
+}
+Vec3 Material_ColorAccent() {
+	if (!_Material_ColorAccent_Set) return Material_Color_PaletteVec("Amber", 1200);
+	return _Material_ColorAccent;
+}
+Void Material_ColorPrimary(Vec3 _Value) {
+	_Material_ColorPrimary = _Value;
+	_Material_ColorPrimary_Set = True;
+	_Material_ColorPrimaryDark = Material_Color_Darken(_Value, .2);
+	_Material_ColorPrimaryDark_Set = True;
+}
+Vec3 Material_ColorPrimary() {
+	if (!_Material_ColorPrimary_Set) return Material_Color_PaletteVec("Teal", 500);
+	return _Material_ColorPrimary;
+}
+Void Material_ColorPrimaryDark(Vec3 _Value) {
+	_Material_ColorPrimaryDark = _Value;
+	_Material_ColorPrimaryDark_Set = True;
+}
+Vec3 Material_ColorPrimaryDark() {
+	if (!_Material_ColorPrimaryDark_Set) return Material_Color_PaletteVec("Teal", 700);
+	return _Material_ColorPrimaryDark;
+}
+
+/******************* Base ***********************/
+Text _Material_Typeof(CMlControl c) 
+{
+	switchtype(c) {
+		case CMlCamera: { return "CMlCamera"; }
+		case CMlEntry: { return "CMlEntry"; }
+		case CMlFrame: { return "CMlFrame"; }
+		case CMlGauge: { return "CMlGauge"; }
+		case CMlGraph: { return "CMlGraph"; }
+		case CMlLabel: { return "CMlLabel"; }
+		case CMlMediaPlayer: { return "CMlMediaPlayer"; }
+		case CMlMinimap: { return "CMlMinimap"; }
+		case CMlQuad: { return "CMlQuad"; }
+		default: { return "unknown"; }
+	}
+	return "unknown";
+}
+declare Text[Text][] Material_PendingEvents;
+Void Material_SendEvent(Text _Type, Text[Text] _Data) {
+	declare Text[Text] Data = _Data;
+	Data["Type"] = _Type;
+	Data["Time"] = TextLib::ToText(Now);
+	Material_PendingEvents.add(Data);
+}
