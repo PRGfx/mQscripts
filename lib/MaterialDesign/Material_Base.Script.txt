@@ -187,6 +187,15 @@ Text _Material_Typeof(CMlControl c)
 	}
 	return "unknown";
 }
+Vec3 _Material_ElementCenter(CMlControl _Control) {
+	declare Vec2 Size = _Control.Size * _Control.AbsoluteScale;
+	declare Vec3 Pos = _Control.AbsolutePosition;
+	if (_Control.VerticalAlign == CMlControl::AlignVertical::Bottom) Pos.Y += Size[1] / 2;
+	if (_Control.VerticalAlign == CMlControl::AlignVertical::Top) Pos.Y -= Size[1] / 2;
+	if (_Control.HorizontalAlign == CMlControl::AlignHorizontal::Right) Pos.X -= Size[0] / 2;
+	if (_Control.HorizontalAlign == CMlControl::AlignHorizontal::Left) Pos.X += Size[0] / 2;
+	return Pos;
+}
 declare Text[Text][] Material_PendingEvents;
 Void Material_SendEvent(Text _Type, Text[Text] _Data) {
 	declare Text[Text] Data = _Data;

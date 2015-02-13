@@ -1,0 +1,121 @@
+#Include "AnimLib" as AnimLib
+
+declare CMlFrame[] _Material_Ripple_Queue;
+declare Integer _Material_Ripple_Queue_Index;
+declare Integer _Material_Ripple_AnimationDuration;
+declare Integer _Material_Ripple_AnimationFrames;
+declare Boolean _Material_Ripple_IsInit;
+declare CMlFrame _Material_Ripple_Container;
+declare CMlFrame[] _Material_Ripple_Animate;
+declare Integer[CMlFrame] _Material_Ripple_AnimationStart;
+declare Integer[CMlControl] _Material_Ripple_AnimationLock;
+declare CMlControl[] _Material_Ripple_Triggers;
+declare Vec2[CMlControl] _Material_Ripple_BoundingSize;
+declare Vec2[CMlControl] _Material_Ripple_BoundingPosition;
+declare Vec3[CMlControl] _Material_Ripple_Color;
+declare Vec3[CMlControl] _Material_Ripple_TargetPos;
+declare Vec3[CMlControl] _Material_Ripple_StartPos;
+
+Void Material_Ripple_Init(CMlFrame _Container) {
+	_Material_Ripple_Container = _Container;
+	foreach (Control in _Container.Controls) {
+		if (Control is CMlFrame) _Material_Ripple_Queue.add((Control as CMlFrame));
+		Control.Hide();
+	}
+	_Material_Ripple_AnimationDuration = 400;
+	_Material_Ripple_AnimationFrames = 25;
+	_Material_Ripple_IsInit = _Material_Ripple_Queue.count > 0;
+}
+Void Material_Ripple(CMlControl _Trigger, Vec3 _BoundingPosition, Vec2 _BoundingSize, Vec3 _Color) {
+	if (_Material_Ripple_IsInit) {
+		_Material_Ripple_Triggers.add(_Trigger);
+		_Material_Ripple_Color[_Trigger] = _Color;
+		_Material_Ripple_BoundingPosition[_Trigger] = <0., 0.>;
+		_Material_Ripple_BoundingPosition[_Trigger].X = _BoundingPosition.X;
+		_Material_Ripple_BoundingPosition[_Trigger].Y = _BoundingPosition.Y;
+		_Material_Ripple_BoundingSize[_Trigger] = _BoundingSize;
+	}
+}
+Void Material_Ripple(CMlControl _Trigger, Vec3 _BoundingPosition, Vec2 _BoundingSize) {
+	Material_Ripple(_Trigger, _BoundingPosition, _BoundingSize, Material_ColorAccent());
+}
+Void Material_Ripple(Text _TriggerId, Vec3 _BoundingPosition, Vec2 _BoundingSize, Vec3 _Color) {
+	Material_Ripple(Page.GetFirstChild(_TriggerId), _BoundingPosition, _BoundingSize, _Color);
+}
+Void Material_Ripple(Text _TriggerId, Vec3 _BoundingPosition, Vec2 _BoundingSize) {
+	Material_Ripple(Page.GetFirstChild(_TriggerId), _BoundingPosition, _BoundingSize, Material_ColorAccent());
+}
+Void Material_Ripple(CMlControl _BoundingBox, Vec3 _Color) {
+	declare Vec2 BoundingSize = _BoundingBox.Size * _BoundingBox.AbsoluteScale;
+	declare Vec3 BoundingPosition = _BoundingBox.AbsolutePosition + <0., 0., 1.>;
+	if (_BoundingBox.VerticalAlign == CMlControl::AlignVertical::VCenter) BoundingPosition.Y += BoundingSize[1] / 2;
+	if (_BoundingBox.VerticalAlign == CMlControl::AlignVertical::Bottom) BoundingPosition.Y += BoundingSize[1];
+	if (_BoundingBox.HorizontalAlign == CMlControl::AlignHorizontal::HCenter) BoundingPosition.X += BoundingSize[0] / 2;
+	if (_BoundingBox.HorizontalAlign == CMlControl::AlignHorizontal::Right) BoundingPosition.X += BoundingSize[0];
+	Material_Ripple(_BoundingBox, BoundingPosition, BoundingSize, _Color);
+}
+Void Material_Ripple(CMlControl _BoundingBox) {
+	Material_Ripple(_BoundingBox, Material_ColorAccent());
+}
+Void Material_Ripple(Text _BoundingBoxId, Vec3 _Color) {
+	Material_Ripple(Page.GetFirstChild(_BoundingBoxId), _Color);
+}
+Void Material_Ripple(Text _BoundingBoxId) {
+	Material_Ripple(Page.GetFirstChild(_BoundingBoxId), Material_ColorAccent());
+}
+Void _Material_Ripple_Start(CMlControl _Trigger) {
+	if (_Material_Ripple_IsInit && (!_Material_Ripple_AnimationLock.existskey(_Trigger) || Now - _Material_Ripple_AnimationLock[_Trigger] >= 100)) {
+		declare CMlFrame Current = _Material_Ripple_Queue[_Material_Ripple_Queue_Index];
+		_Material_Ripple_Queue_Index = (_Material_Ripple_Queue_Index + 1) % _Material_Ripple_Queue.count;
+		Current.Show();
+		Current.ClipWindowActive = True;
+		Current.ClipWindowSize = _Material_Ripple_BoundingSize[_Trigger];
+		Current.ClipWindowRelativePosition = _Material_Ripple_BoundingPosition[_Trigger];
+		Current.ClipWindowRelativePosition.X += Current.ClipWindowSize[0] * 0.5;
+		Current.ClipWindowRelativePosition.Y -= Current.ClipWindowSize[1] * 0.5;
+		Current.RelativePosition.Z = _Trigger.AbsolutePosition.Z + 1;
+		declare CMlQuad Quad = (Current.Controls[0] as CMlQuad);
+		Quad.RelativeScale = 0.;
+		Quad.ImageUrl = "http://trollgil.de/md/img/generic_disk.png";
+		Quad.ModulateColor = _Material_Ripple_Color[_Trigger];
+		Quad.Size = <1., 1.> * _Material_Math_Min(Current.ClipWindowSize) * 1.6;
+		Quad.RelativePosition.X = MouseX;
+		Quad.RelativePosition.Y = MouseY;
+		Quad.Opacity = 0.2;
+		Quad.Show();
+		Quad.HorizontalAlign = CMlControl::AlignHorizontal::HCenter;
+		Quad.VerticalAlign = CMlControl::AlignVertical::VCenter;
+		_Material_Ripple_AnimationStart[Current] = Now;
+		_Material_Ripple_Animate.add(Current);
+		_Material_Ripple_AnimationLock[_Trigger] = Now;
+		declare Vec3 TargetPos = _Trigger.AbsolutePosition;
+		if (_Trigger.VerticalAlign == CMlControl::AlignVertical::VCenter) TargetPos.Y += (_Trigger.Size[1] * _Trigger.AbsoluteScale) / 2;
+		if (_Trigger.VerticalAlign == CMlControl::AlignVertical::Bottom) TargetPos.Y += (_Trigger.Size[1] * _Trigger.AbsoluteScale);
+		if (_Trigger.HorizontalAlign == CMlControl::AlignHorizontal::HCenter) TargetPos.X += (_Trigger.Size[0] * _Trigger.AbsoluteScale) / 2;
+		if (_Trigger.HorizontalAlign == CMlControl::AlignHorizontal::Right) TargetPos.X += (_Trigger.Size[0] * _Trigger.AbsoluteScale);
+		_Material_Ripple_StartPos[Current] = Quad.AbsolutePosition;
+		_Material_Ripple_TargetPos[Current] = TargetPos - Quad.AbsolutePosition;
+	}
+}
+***Material_EventLoop***
+***
+if (Event.Control != Null && _Material_Ripple_Triggers.exists(Event.Control) && Event.Type == CMlEvent::Type::MouseClick) {
+	_Material_Ripple_Start(Event.Control);
+}
+***
+
+***Material_AnimationLoop***
+***
+foreach(Ripple in _Material_Ripple_Animate) {
+	
+	declare Integer step = (Now - _Material_Ripple_AnimationStart[Ripple]) * _Material_Ripple_AnimationFrames / _Material_Ripple_AnimationDuration;
+	declare CMlQuad Quad = (Ripple.Controls[0] as CMlQuad);
+	Quad.RelativeScale += AnimLib::EaseInOutQuad(step, 0., 0.1, _Material_Ripple_AnimationFrames);
+	Quad.Opacity = AnimLib::EaseInOutQuad(step, 0.2, 0.03, _Material_Ripple_AnimationFrames);
+	Quad.RelativePosition = _Material_Ripple_StartPos[Ripple] + AnimLib::EaseInOutQuad(step, 0., 0.1, _Material_Ripple_AnimationFrames) * _Material_Ripple_TargetPos[Ripple];
+	if ((Now - _Material_Ripple_AnimationStart[Ripple]) >= _Material_Ripple_AnimationDuration) {
+		_Material_Ripple_Animate.remove(Ripple);
+		Ripple.Hide();
+	}
+}
+***

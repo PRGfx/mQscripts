@@ -1,0 +1,32 @@
+Void Material_Card(CMlControl _Background, CMlQuad _Shadow, Integer _Distance) {
+	_Shadow.RelativePosition = _Material_ElementCenter(_Background);
+	_Shadow.RelativePosition -= _Shadow.AbsolutePosition - _Shadow.RelativePosition;
+	_Shadow.RelativePosition.Z = _Background.AbsolutePosition.Z - 1;
+	_Shadow.VerticalAlign = CMlControl::AlignVertical::VCenter;
+	_Shadow.HorizontalAlign = CMlControl::AlignHorizontal::HCenter;
+	_Shadow.Style = "Bgs1";
+	_Shadow.Substyle = "BgButtonShadow";
+	_Shadow.Size = _Background.Size * (_Shadow.AbsoluteScale / _Background.AbsoluteScale) * 2;
+	_Shadow.Size += <10., 10.>;
+	declare Distance = _Material_Math_Boundaries(_Distance, 0, 5);
+	if (Distance == 0)
+		_Shadow.Opacity = 0.;
+	else
+		_Shadow.Opacity = 0.8 - (5. - Distance) / 10.;
+	_Shadow.RelativeScale = 0.5 - Distance / 500.;
+}
+Void Material_Card(CMlControl _Background, CMlQuad _Shadow) {
+	Material_Card(_Background, _Shadow, 3);
+}
+Void Material_Card(CMlControl _Background, Text _ShadowId, Integer _Distance) {
+	Material_Card(_Background, (Page.GetFirstChild(_ShadowId) as CMlQuad), _Distance);
+}
+Void Material_Card(CMlControl _Background, Text _ShadowId) {
+	Material_Card(_Background, (Page.GetFirstChild(_ShadowId) as CMlQuad), 3);
+}
+Void Material_Card(Text _BackgroundId, Text _ShadowId, Integer _Distance) {
+	Material_Card(Page.GetFirstChild(_BackgroundId), (Page.GetFirstChild(_ShadowId) as CMlQuad), _Distance);
+}
+Void Material_Card(Text _BackgroundId, Text _ShadowId) {
+	Material_Card(Page.GetFirstChild(_BackgroundId), (Page.GetFirstChild(_ShadowId) as CMlQuad), 3);
+}
