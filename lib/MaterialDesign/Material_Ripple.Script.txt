@@ -15,6 +15,8 @@ declare Vec2[CMlControl] _Material_Ripple_BoundingPosition;
 declare Vec3[CMlControl] _Material_Ripple_Color;
 declare Vec3[CMlControl] _Material_Ripple_TargetPos;
 declare Vec3[CMlControl] _Material_Ripple_StartPos;
+declare Boolean[CMlControl] _Material_Ripple_StillPressed;
+declare Integer[CMlControl] _Material_Ripple_Duration;
 
 Void Material_Ripple_Init(CMlFrame _Container) {
 	_Material_Ripple_Container = _Container;
@@ -85,6 +87,8 @@ Void _Material_Ripple_Start(CMlControl _Trigger) {
 		Quad.Show();
 		Quad.HorizontalAlign = CMlControl::AlignHorizontal::HCenter;
 		Quad.VerticalAlign = CMlControl::AlignVertical::VCenter;
+		_Material_Ripple_StillPressed[Quad] = True;
+		_Material_Ripple_Duration[Quad] = _Material_Ripple_AnimationDuration;
 		_Material_Ripple_AnimationStart[Current] = Now;
 		_Material_Ripple_Animate.add(Current);
 		_Material_Ripple_AnimationLock[_Trigger] = Now;
@@ -97,23 +101,28 @@ Void _Material_Ripple_Start(CMlControl _Trigger) {
 		_Material_Ripple_TargetPos[Current] = TargetPos - Quad.AbsolutePosition;
 	}
 }
-***Material_EventLoop***
+***Material_GameLoop***
 ***
-if (Event.Control != Null && _Material_Ripple_Triggers.exists(Event.Control) && Event.Type == CMlEvent::Type::MouseClick) {
-	_Material_Ripple_Start(Event.Control);
+foreach (Event in PendingEvents) {
+	if (Event.Control != Null && _Material_Ripple_Triggers.exists(Event.Control) && Event.Type == CMlEvent::Type::MouseClick) {
+		_Material_Ripple_Start(Event.Control);
+	}	
 }
-***
-
-***Material_AnimationLoop***
-***
 foreach(Ripple in _Material_Ripple_Animate) {
 	
-	declare Integer step = (Now - _Material_Ripple_AnimationStart[Ripple]) * _Material_Ripple_AnimationFrames / _Material_Ripple_AnimationDuration;
 	declare CMlQuad Quad = (Ripple.Controls[0] as CMlQuad);
+	_Material_Ripple_StillPressed[Quad] = _Material_Ripple_StillPressed[Quad] && MouseLeftButton;
+	
+	if (_Material_Ripple_StillPressed[Quad]) {
+		_Material_Ripple_Duration[Quad] = _Material_Ripple_AnimationDuration * 4;
+	} else 
+		_Material_Ripple_Duration[Quad] = _Material_Ripple_AnimationDuration;
+	
+	declare Integer step = (Now - _Material_Ripple_AnimationStart[Ripple]) * _Material_Ripple_AnimationFrames / _Material_Ripple_Duration[Quad];
 	Quad.RelativeScale += AnimLib::EaseInOutQuad(step, 0., 0.1, _Material_Ripple_AnimationFrames);
 	Quad.Opacity = AnimLib::EaseInOutQuad(step, 0.2, 0.03, _Material_Ripple_AnimationFrames);
 	Quad.RelativePosition = _Material_Ripple_StartPos[Ripple] + AnimLib::EaseInOutQuad(step, 0., 0.1, _Material_Ripple_AnimationFrames) * _Material_Ripple_TargetPos[Ripple];
-	if ((Now - _Material_Ripple_AnimationStart[Ripple]) >= _Material_Ripple_AnimationDuration) {
+	if ((Now - _Material_Ripple_AnimationStart[Ripple]) >= _Material_Ripple_Duration[Quad]) {
 		_Material_Ripple_Animate.remove(Ripple);
 		Ripple.Hide();
 	}
