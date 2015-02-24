@@ -76,6 +76,29 @@ Boolean Material_Input_Enabled(Text _FrameId) {
 		return _Material_Input_Enabled[_FrameId];
 	return False;
 }
+Void Material_Input_Resize(Text _FrameId, Vec2 _Size) {
+	_Material_Input_Entries[_FrameId].Size = _Size;
+	if (_Material_Input_Hints.existskey(_FrameId)) {
+		_Material_Input_Hints[_FrameId].RelativePosition.Y = _Material_Input_Entries[_FrameId].RelativePosition.Y - _Material_Input_Entries[_FrameId].Size[1] - 1;
+		_Material_Input_Hints[_FrameId].Size[0] = _Size[0];
+	}
+	_Material_Input_Lines[_FrameId].RelativePosition = _Material_Input_Entries[_FrameId].RelativePosition;
+	_Material_Input_Lines[_FrameId].RelativePosition[1] -= _Material_Input_Entries[_FrameId].Size[1];
+	_Material_Input_Lines[_FrameId].RelativePosition[2] += 1;
+	_Material_Input_Overlays[_FrameId].Size = _Material_Input_Entries[_FrameId].Size;
+	if (_Material_Input_Placeholders.existskey(_FrameId))
+		_Material_Input_Placeholders[_FrameId].Size = _Material_Input_Entries[_FrameId].Size;
+}
+Void Material_Input_SetWidth(Text _FrameId, Real _Width) {
+	declare Vec2 Size = _Material_Input_Entries[_FrameId].Size;
+	Size[0] = _Width;
+	Material_Input_Resize(_FrameId, Size);
+}
+Void Material_Input_SetHeight(Text _FrameId, Real _Height) {
+	declare Vec2 Size = _Material_Input_Entries[_FrameId].Size;
+	Size[1] = _Height;
+	Material_Input_Resize(_FrameId, Size);
+}
 Void Material_Input_Create(Text _FrameId) {
 	declare Vec3 hintcolor = TextLib::ToColor("999");
 	_Material_Input_Containers[_FrameId] = (Page.GetFirstChild(_FrameId) as CMlFrame);
@@ -110,6 +133,7 @@ Void Material_Input_Create(Text _FrameId) {
 	else {
 		_Material_Input_Hints[_FrameId].RelativePosition.Y = _Material_Input_Entries[_FrameId].RelativePosition.Y - _Material_Input_Entries[_FrameId].Size[1] - 1;
 		_Material_Input_Hints[_FrameId].RelativePosition.X = _Material_Input_Entries[_FrameId].RelativePosition.X;
+		_Material_Input_Hints[_FrameId].Size[0] = _Material_Input_Entries[_FrameId].Size[0];
 		_Material_Input_Hints[_FrameId].HorizontalAlign = CMlControl::AlignHorizontal::Left;
 		_Material_Input_Hints[_FrameId].TextSize = 1;
 		_Material_Input_Hints[_FrameId].TextColor = Material_Color_Lighten(<0.1, 0.1, 0.1>, .2);
@@ -182,22 +206,21 @@ Void _Material_Input_Blur() {
 		if (_Material_Input_Hints[_FrameId] != Null) _Material_Input_Hints[_FrameId].Hide();
 	}
 }
-***Material_EventLoop***
+***Material_GameLoop***
 ***
-if (Event.Control != Null) {
-	if (Event.Control.HasClass("Material_Input_Overlay") && Event.Type == CMlEvent::Type::MouseClick) {
-		_Material_Input_Focus(_Material_Input_ByChild[Event.Control]);
-	}
-	if (Event.Type == CMlEvent::Type::EntrySubmit && _Material_Input_Entries.exists((Event.Control as CMlEntry))) {
-		_Material_Input_Blur();
-	}
-	if (_Material_Input_Active != "" && Event.ControlId == "Material_Inputs_Overlay" && Event.Type == CMlEvent::Type::MouseOver) {
-		_Material_Input_Blur();
-	}
+foreach (Event in PendingEvents) {
+	if (Event.Control != Null) {
+		if (Event.Control.HasClass("Material_Input_Overlay") && Event.Type == CMlEvent::Type::MouseClick) {
+			_Material_Input_Focus(_Material_Input_ByChild[Event.Control]);
+		}
+		if (Event.Type == CMlEvent::Type::EntrySubmit && _Material_Input_Entries.exists((Event.Control as CMlEntry))) {
+			_Material_Input_Blur();
+		}
+		if (_Material_Input_Active != "" && Event.ControlId == "Material_Inputs_Overlay" && Event.Type == CMlEvent::Type::MouseOver) {
+			_Material_Input_Blur();
+		}
+	}	
 }
-***
-***Material_AnimationLoop***
-***
 foreach (Placeholder in _Material_Input_AnimatedPlaceholders) {
 	declare Integer step = (Now - _Material_Input_PlaceholderAnimationStart[Placeholder]) * _Material_Input_AnimationFrames / _Material_Input_AnimationDuration;
 	Placeholder.RelativeScale += _Material_Input_PlaceholderAnimationDirection[Placeholder] * AnimLib::EaseLinear(step, 0.0, 0.7/_Material_Input_AnimationFrames, _Material_Input_AnimationFrames);

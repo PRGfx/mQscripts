@@ -1,6 +1,7 @@
 #Include "AnimLib" as AnimLib
 
 #Const MATERIAL_EVENT_SWITCH_CHANGED 	"MATERIAL_EVENT_SWITCH_CHANGED"
+#Const MATERIAL_EVENT_SWITCH_CLICKED 	"MATERIAL_EVENT_SWITCH_CLICKED"
 
 declare CMlFrame[Text] _Material_Switch_Containers;
 declare Text[CMlControl] _Material_Switch_ByChild;
@@ -93,16 +94,16 @@ Void Material_Switch_Create(Text _FrameId) {
 	Material_Switch_Active(_FrameId, _Material_Switch_Active[_FrameId]);
 	_Material_Switch_HandleAnimationLock[Handle] = False;
 }
-***Material_EventLoop***
+***Material_GameLoop***
 ***
-if (Event.Control != Null) {
-	if ((Event.Control.HasClass("Material_Switch_Handle") || Event.Control.HasClass("Material_Switch_Background")) && Event.Type == CMlEvent::Type::MouseClick) {
-		Material_Switch_Change(_Material_Switch_ByChild[Event.Control]);
-	}
+foreach (Event in PendingEvents) {
+	if (Event.Control != Null) {
+		if ((Event.Control.HasClass("Material_Switch_Handle") || Event.Control.HasClass("Material_Switch_Background")) && Event.Type == CMlEvent::Type::MouseClick) {
+			Material_SendEvent(MATERIAL_EVENT_SWITCH_CLICKED, ["ControlId"=>_Material_Switch_ByChild[Event.Control]]);
+			Material_Switch_Change(_Material_Switch_ByChild[Event.Control]);
+		}
+	}	
 }
-***
-***Material_AnimationLoop***
-***
 foreach (Handle in _Material_Switch_AnimatedHandles) {
 	declare Integer step = (Now - _Material_Switch_HandleAnimationStart[Handle]) * _Material_Switch_AnimationFrames / _Material_Switch_AnimationDuration;
 	Handle.RelativePosition.X += _Material_Switch_HandleAnimationDirection[Handle] * AnimLib::EaseInOutCubic(step, 0.0, 4.5/_Material_Switch_AnimationFrames, _Material_Switch_AnimationFrames);

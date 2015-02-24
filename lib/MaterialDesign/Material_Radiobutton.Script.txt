@@ -2,6 +2,7 @@
 
 #Const MATERIAL_EVENT_RADIOBUTTON_DESELECT 	"MATERIAL_EVENT_RADIOBUTTON_DESELECT"
 #Const MATERIAL_EVENT_RADIOBUTTON_SELECT 	"MATERIAL_EVENT_RADIOBUTTON_SELECT"
+#Const MATERIAL_EVENT_RADIOBUTTON_CLICKED 	"MATERIAL_EVENT_RADIOBUTTON_CLICKED"
 
 declare CMlQuad[][Text] _Material_Radiobutton_Quads;
 declare Text[CMlQuad] _Material_Radiobutton_Values;
@@ -18,8 +19,12 @@ declare CMlQuad[] _Material_Radiobutton_AnimationQueue;
 declare CMlQuad[Text] _Material_Radiobutton_SelectNext;
 declare Vec3 _Material_Radiobutton_ColorBorder;
 declare Vec3 _Material_Radiobutton_ColorDisabled;
+declare Boolean _Material_Radiobutton_IsInit;
 Boolean Material_Radiobutton_Enabled(CMlQuad _Button) {
 	return _Material_Radiobutton_Enabled[_Button];
+}
+Boolean Material_Radiobutton_Selected(CMlQuad _Button) {
+	return _Material_Radiobutton_Selected[_Material_Radiobutton_Groups[_Button]] == _Button;
 }
 Void _Material_Radiobutton_StyleSelector(CMlQuad _Selector) {
 	_Selector.ImageUrl = "http://trollgil.de/md/img/generic_disk.png";
@@ -38,10 +43,84 @@ Void Material_Radiobutton_Select(CMlQuad _Button) {
 	if (!_Material_Radiobutton_Enabled[_Button]) Color = _Material_Radiobutton_ColorDisabled;
 	Selector.ModulateColor = Color;
 	_Button.ModulateColor = Color;
-
 }
-***Material_AnimationLoop***
+Void Material_Radiobutton_Redraw(CMlQuad _Button) {
+	declare Vec3 Color;
+	if (_Material_Radiobutton_Enabled[_Button]) {
+		if (Material_Radiobutton_Selected(_Button)) {
+			Color = Material_ColorAccent();
+			if (_Material_Radiobutton_Color.existskey(_Button)) Color = _Material_Radiobutton_Color[_Button];
+		} else {
+			Color = _Material_Radiobutton_ColorBorder;
+		}
+	} else {
+		Color = _Material_Radiobutton_ColorDisabled;
+	}
+	_Button.ModulateColor = Color;
+	_Material_Radiobutton_Selector[_Material_Radiobutton_Groups[_Button]].ModulateColor = Color;
+	
+}
+Void Material_Radiobutton_Redraw() {
+	foreach (Group=>Buttons in _Material_Radiobutton_Quads) {
+		foreach (Button in Buttons) {
+			Material_Radiobutton_Redraw(Button);
+		}
+	}
+}
+Void Material_Radiobutton_Enabled(CMlQuad _Button, Boolean _Enabled) {
+	_Material_Radiobutton_Enabled[_Button] = _Enabled;
+	Material_Radiobutton_Redraw(_Button);
+}
+Void Material_Radiobutton_SetColor(CMlQuad _Button, Vec3 _Color) {
+	_Material_Radiobutton_Color[_Button] = _Color;
+	Material_Radiobutton_Redraw(_Button);
+}
+Void Material_Radiobutton_SetColor(CMlQuad _Button, CMlControl _None) {
+	_Material_Radiobutton_Color.removekey(_Button);
+	Material_Radiobutton_Redraw(_Button);
+}
+Text Material_Radiobutton_Value(Text _Group) {
+	if (_Material_Radiobutton_Selected[_Group] != Null)
+		return _Material_Radiobutton_Values[_Material_Radiobutton_Selected[_Group]];
+	return "";
+}
+Void Material_Radiobutton_StartAnimation(CMlQuad _Old, CMlQuad _New) {
+	declare Group = _Material_Radiobutton_Groups[_New];
+	declare Selector = _Material_Radiobutton_Selector[Group];
+	_Material_Radiobutton_AnimationStarted[Selector] = False;
+	_Material_Radiobutton_IsSelecting[Selector] = _Old == Null;
+	_Material_Radiobutton_AnimationStart[Selector] = Now;
+	if (_Old != Null) {
+		Selector.RelativeScale = 1.;
+		if (Material_Radiobutton_Enabled(_Old))
+			_Old.ModulateColor = _Material_Radiobutton_ColorBorder;
+		else
+			_Old.ModulateColor = _Material_Radiobutton_ColorDisabled;
+		Selector.RelativePosition = _Material_ElementCenter(_Old);
+	} else {
+		Selector.RelativeScale = 0.;
+		declare Color = Material_ColorAccent();
+		if (_Material_Radiobutton_Color.existskey(_New)) Color = _Material_Radiobutton_Color[_New];
+		if (!_Material_Radiobutton_Enabled[_New]) Color = _Material_Radiobutton_ColorDisabled;
+		Selector.ModulateColor = Color;
+		Selector.RelativePosition = _Material_ElementCenter(_New);		
+	}
+	_Material_Radiobutton_AnimationQueue.add(Selector);
+	_Material_Radiobutton_StyleSelector(Selector);
+	_Material_Radiobutton_SelectNext[Group] = _New;
+}
+***Material_GameLoop***
 ***
+foreach (Event in PendingEvents) {
+	if (Event.Control != Null && Event.Control.HasClass("Material_Radiobutton") && Event.Type == CMlEvent::Type::MouseClick) {
+		declare Group = _Material_Radiobutton_Groups[(Event.Control as CMlQuad)];
+		if (_Material_Radiobutton_Enabled[(Event.Control as CMlQuad)] && _Material_Radiobutton_Selected[Group] != (Event.Control as CMlQuad)) {
+			Material_SendEvent(MATERIAL_EVENT_RADIOBUTTON_CLICKED, ["ControlId"=>Event.ControlId, "Group"=>Group]);
+			Material_Radiobutton_StartAnimation(_Material_Radiobutton_Selected[Group], (Event.Control as CMlQuad));
+		}
+	}	
+}
+if (!_Material_Radiobutton_IsInit) Material_Radiobuttons();
 foreach(Selector in _Material_Radiobutton_AnimationQueue) {
 	declare Frames = 5;
 	declare Duration = 160;
@@ -73,41 +152,8 @@ foreach(Selector in _Material_Radiobutton_AnimationQueue) {
 	}
 }
 ***
-Void Material_Radiobutton_StartAnimation(CMlQuad _Old, CMlQuad _New) {
-	declare Group = _Material_Radiobutton_Groups[_New];
-	declare Selector = _Material_Radiobutton_Selector[Group];
-	_Material_Radiobutton_AnimationStarted[Selector] = False;
-	_Material_Radiobutton_IsSelecting[Selector] = _Old == Null;
-	_Material_Radiobutton_AnimationStart[Selector] = Now;
-	if (_Old != Null) {
-		Selector.RelativeScale = 1.;
-		if (Material_Radiobutton_Enabled(_Old))
-			_Old.ModulateColor = _Material_Radiobutton_ColorBorder;
-		else
-			_Old.ModulateColor = _Material_Radiobutton_ColorDisabled;
-		Selector.RelativePosition = _Material_ElementCenter(_Old);
-	} else {
-		Selector.RelativeScale = 0.;
-		declare Color = Material_ColorAccent();
-		if (_Material_Radiobutton_Color.existskey(_New)) Color = _Material_Radiobutton_Color[_New];
-		if (!_Material_Radiobutton_Enabled[_New]) Color = _Material_Radiobutton_ColorDisabled;
-		Selector.ModulateColor = Color;
-		Selector.RelativePosition = _Material_ElementCenter(_New);		
-	}
-	_Material_Radiobutton_AnimationQueue.add(Selector);
-	_Material_Radiobutton_StyleSelector(Selector);
-	_Material_Radiobutton_SelectNext[Group] = _New;
-}
-***Material_EventLoop***
-***
-if (Event.Control != Null && Event.Control.HasClass("Material_Radiobutton") && Event.Type == CMlEvent::Type::MouseClick) {
-	declare Group = _Material_Radiobutton_Groups[(Event.Control as CMlQuad)];
-	if (_Material_Radiobutton_Enabled[(Event.Control as CMlQuad)] && _Material_Radiobutton_Selected[Group] != (Event.Control as CMlQuad)) {
-		Material_Radiobutton_StartAnimation(_Material_Radiobutton_Selected[Group], (Event.Control as CMlQuad));
-	}
-}
-***
 Void Material_Radiobuttons() {
+	_Material_Radiobutton_IsInit = True;
 	_Material_Radiobutton_ColorBorder = TextLib::ToColor("333");
 	_Material_Radiobutton_ColorDisabled = TextLib::ToColor("888");
 	Page.GetClassChildren("Material_Radiobutton_Selector", Page.MainFrame, True);
@@ -141,7 +187,7 @@ Void Material_Radiobuttons() {
 				_Material_Radiobutton_Quads[Group].add(Quad);
 				if (Quad.DataAttributeExists("value")) {
 					_Material_Radiobutton_Values[Quad] = Quad.DataAttributeGet("value");
-				}
+				} else _Material_Radiobutton_Values[Quad] = "";
 				if (Quad.DataAttributeExists("color")) {
 					_Material_Radiobutton_Color[Quad] = TextLib::ToColor(Quad.DataAttributeGet("color"));
 				}

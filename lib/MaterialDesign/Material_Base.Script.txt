@@ -171,7 +171,7 @@ Vec3 Material_ColorPrimaryDark() {
 }
 
 /******************* Base ***********************/
-Text _Material_Typeof(CMlControl c) 
+/*Text _Material_Typeof(CMlControl c) 
 {
 	switchtype(c) {
 		case CMlCamera: { return "CMlCamera"; }
@@ -186,7 +186,7 @@ Text _Material_Typeof(CMlControl c)
 		default: { return "unknown"; }
 	}
 	return "unknown";
-}
+}*/
 Vec3 _Material_ElementCenter(CMlControl _Control) {
 	declare Vec2 Size = _Control.Size * _Control.AbsoluteScale;
 	declare Vec3 Pos = _Control.AbsolutePosition;
@@ -203,3 +203,7 @@ Void Material_SendEvent(Text _Type, Text[Text] _Data) {
 	Data["Time"] = TextLib::ToText(Now);
 	Material_PendingEvents.add(Data);
 }
+***Material_GameLoop***
+***
+Material_PendingEvents = Text[Text][];
+***
