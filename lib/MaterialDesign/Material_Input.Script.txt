@@ -22,6 +22,7 @@ declare CMlLabel[] _Material_Input_AnimatedPlaceholders;
 declare Integer _Material_Input_AnimationFrames;
 declare Integer _Material_Input_AnimationDuration;
 declare Vec3[Text] _Material_Input_CustomColors;
+declare Boolean _Material_Input_IsInit;
 
 Text _Material_Input_EntryValue(Text _FrameId) {
 	if (_Material_Input_Entries[_FrameId] is CMlTextEdit) {
@@ -208,6 +209,7 @@ Void _Material_Input_Blur() {
 }
 ***Material_GameLoop***
 ***
+if (!_Material_Input_IsInit) _Material_Input_Init();
 foreach (Event in PendingEvents) {
 	if (Event.Control != Null) {
 		if (Event.Control.HasClass("Material_Input_Overlay") && Event.Type == CMlEvent::Type::MouseClick) {
@@ -271,4 +273,17 @@ Void Material_Input_SetColor(Text _FrameId, Vec3 _Color) {
 }
 Void Material_Input_SetColor(Text _FrameId, CMlControl _Null) {
 	_Material_Input_CustomColors.removekey(_FrameId);
+}
+Void _Material_Input_Init() {
+	if (!_Material_Input_IsInit) {
+		_Material_Input_IsInit = True;
+		Page.GetClassChildren("Material_Input", Page.MainFrame, True);
+		foreach (Control in Page.GetClassChildren_Result) {
+			if (Control is CMlFrame && Control.ControlId != "") {
+				Material_Input_Create(Control.ControlId);
+			} else {
+				Control.Hide();
+			}
+		}
+	}
 }

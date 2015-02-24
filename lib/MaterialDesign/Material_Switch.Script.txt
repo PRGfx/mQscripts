@@ -20,6 +20,8 @@ declare Boolean[CMlControl] _Material_Switch_HandleAnimationLock;
 declare CMlQuad[] _Material_Switch_AnimatedHandles;
 declare Integer _Material_Switch_AnimationFrames;
 declare Integer _Material_Switch_AnimationDuration;
+declare Boolean _Material_Switch_IsInit;
+
 Boolean Material_Switch_Active(Text _FrameId) {
 	return _Material_Switch_Active[_FrameId];
 }
@@ -96,6 +98,7 @@ Void Material_Switch_Create(Text _FrameId) {
 }
 ***Material_GameLoop***
 ***
+if (!_Material_Switch_IsInit) _Material_Switch_Init();
 foreach (Event in PendingEvents) {
 	if (Event.Control != Null) {
 		if ((Event.Control.HasClass("Material_Switch_Handle") || Event.Control.HasClass("Material_Switch_Background")) && Event.Type == CMlEvent::Type::MouseClick) {
@@ -153,4 +156,17 @@ Void Material_Switch_SetColor(Text _FrameId, Vec3 _Color) {
 Void Material_Switch_SetColor(Text _FrameId, CMlControl _Null) {
 	_Material_Switch_CustomColors.removekey(_FrameId);
 	Material_Switch_Active(_FrameId, _Material_Switch_Active[_FrameId]);
+}
+Void _Material_Switch_Init() {
+	if (!_Material_Switch_IsInit) {
+		_Material_Switch_IsInit = True;		
+		Page.GetClassChildren("Material_Switch", Page.MainFrame, True);
+		foreach (Control in Page.GetClassChildren_Result) {
+			if (Control is CMlFrame && Control.ControlId != "") {
+				Material_Switch_Create(Control.ControlId);
+			} else {
+				Control.Hide();
+			}
+		}
+	}
 }
