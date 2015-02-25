@@ -112,11 +112,23 @@ Void Material_Radiobutton_StartAnimation(CMlQuad _Old, CMlQuad _New) {
 ***Material_GameLoop***
 ***
 foreach (Event in PendingEvents) {
-	if (Event.Control != Null && Event.Control.HasClass("Material_Radiobutton") && Event.Type == CMlEvent::Type::MouseClick) {
-		declare Group = _Material_Radiobutton_Groups[(Event.Control as CMlQuad)];
-		if (_Material_Radiobutton_Enabled[(Event.Control as CMlQuad)] && _Material_Radiobutton_Selected[Group] != (Event.Control as CMlQuad)) {
-			Material_SendEvent(MATERIAL_EVENT_RADIOBUTTON_CLICKED, ["ControlId"=>Event.ControlId, "Group"=>Group]);
-			Material_Radiobutton_StartAnimation(_Material_Radiobutton_Selected[Group], (Event.Control as CMlQuad));
+	if (Event.Type == CMlEvent::Type::MouseClick) {
+		if(Event.Control.HasClass("Material_Radiobutton") && (Event.Control is CMlQuad)) {
+			declare Group = _Material_Radiobutton_Groups[(Event.Control as CMlQuad)];
+			if (_Material_Radiobutton_Enabled[(Event.Control as CMlQuad)] && _Material_Radiobutton_Selected[Group] != (Event.Control as CMlQuad)) {
+				Material_SendEvent(MATERIAL_EVENT_RADIOBUTTON_CLICKED, ["ControlId"=>Event.ControlId, "Group"=>Group]);
+				Material_Radiobutton_StartAnimation(_Material_Radiobutton_Selected[Group], (Event.Control as CMlQuad));
+			}
+		}
+		else if(Event.Control.HasClass("Material_Radiobutton_Label")) {	
+			if (Event.Control.DataAttributeExists("for")) {
+				declare CMlQuad Quad = (Page.GetFirstChild(Event.Control.DataAttributeGet("for")) as CMlQuad);
+				declare Group = _Material_Radiobutton_Groups[Quad];
+				if (_Material_Radiobutton_Enabled[Quad] && _Material_Radiobutton_Selected[Group] != Quad) {
+					Material_SendEvent(MATERIAL_EVENT_RADIOBUTTON_CLICKED, ["ControlId"=>Event.Control.DataAttributeGet("for"), "Group"=>Group]);
+					Material_Radiobutton_StartAnimation(_Material_Radiobutton_Selected[Group], Quad);
+				}
+			}
 		}
 	}	
 }
