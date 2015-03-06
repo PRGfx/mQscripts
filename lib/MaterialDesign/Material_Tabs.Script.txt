@@ -23,6 +23,24 @@ Void _Material_Tabs_Select(Text _FrameId, Integer _Index) {
 	_Material_Tabs_Selector[_FrameId].RelativePosition = <Label.RelativePosition.X, -7.2, 1.>;
 	_Material_Tabs_Selected[_FrameId] = Label;
 }
+Boolean Material_Tabs_Enabled(Text _Instance, Integer _Index) {
+	if (_Material_Tabs_Labels.existskey(_Instance) && _Material_Tabs_Labels[_Instance].count >= _Index)
+		return !_Material_Tabs_Labels[_Instance][_Index].DataAttributeExists("enabled") || _Material_Tabs_Labels[_Instance][_Index].DataAttributeGet("enabled")!="false";
+	return False;
+}
+Void Material_Tabs_Enabled(Text _Instance, Integer _Index, Boolean _Enabled) {
+	if (_Material_Tabs_Labels.existskey(_Instance) && _Material_Tabs_Labels[_Instance].count >= _Index) {
+		declare Text Enabled = "true";
+		declare Real Opacity = 1.;
+		if (!_Enabled) {
+			Enabled = "false";
+			Opacity = 0.6;
+		}
+		_Material_Tabs_Labels[_Instance][_Index].DataAttributeSet("enabled", Enabled);
+		_Material_Tabs_Labels[_Instance][_Index].Opacity = Opacity;
+		Material_Ripple_Enabled(_Material_Tabs_Labels[_Instance][_Index], Material_Tabs_Enabled(_Instance, _Index));
+	}
+}
 Void _Material_Tabs_Init() {
 	Page.GetClassChildren("Material_Tabs", Page.MainFrame, True);
 	foreach (Control in Page.GetClassChildren_Result) {
@@ -41,15 +59,19 @@ Void _Material_Tabs_Init() {
 			BoundingSize[1] = 8.;
 			declare offset = Frame.RelativePosition - Frame.AbsolutePosition;
 			Frame.RelativePosition += offset;
+			Frame.Size = BoundingSize;
+			Frame.DataAttributeSet("halign", "left");
 			declare Real StartPos;
 			declare Vec3 BoundingPosition = BoundingBox.AbsolutePosition;
 			if (BoundingBox.HorizontalAlign == CMlControl::AlignHorizontal::Right) {
 				BoundingPosition.X -= BoundingSize[0];
 				StartPos = -1.;
+				Frame.DataAttributeSet("halign", "right");
 			}
 			if (BoundingBox.HorizontalAlign == CMlControl::AlignHorizontal::HCenter) {
 				BoundingPosition.X -= BoundingSize[0] / 2;
 				StartPos = -2.;
+				Frame.DataAttributeSet("halign", "center");
 			}
 			if (BoundingBox.VerticalAlign== CMlControl::AlignVertical::Bottom) BoundingPosition.Y += BoundingSize[1];
 			if (BoundingBox.VerticalAlign== CMlControl::AlignVertical::VCenter) BoundingPosition.Y += BoundingSize[1] / 2;
@@ -99,9 +121,13 @@ Void _Material_Tabs_Init() {
 			if (StartPos == -1) StartPos = BoundingSize[0] - Width2;
 			if (StartPos == -2) StartPos = (BoundingSize[0] - Width2) / 2;
 			declare Real Offset = StartPos;
-			foreach (Label in _Material_Tabs_Labels[_Instance]) {
+			foreach (i=>Label in _Material_Tabs_Labels[_Instance]) {
 				Offset += Label.Size[0];
 				Label.RelativePosition.X = Offset - Label.Size[0] / 2;
+
+				declare Vec3 RipplePosition = Label.AbsolutePosition + <- Label.Size[0] / 2, Label.Size[1] / 2, 1.>;
+				Material_Ripple(Label, RipplePosition, Label.Size, BoundingBox.BgColor);
+				Material_Ripple_Enabled(Label, Material_Tabs_Enabled(_Instance, i));
 			}
 			_Material_Tabs_Select(_Instance, SelectedIndex);
 		}
@@ -121,15 +147,14 @@ foreach (Event in PendingEvents) {
 	}
 }
 foreach (Instance in _Material_Tabs_AnimationQueue) {
-	declare Duration = 30;
+	declare Duration = 40;
 	declare Step = (Now - _Material_Tabs_AnimationStart[Instance]) / 8;
-	_Material_Tabs_Selector[Instance].Size[0] = _Material_Tabs_AnimationSizeStart[Instance] + _Material_Tabs_AnimationSizeDistance[Instance] / Duration * Step;
-	//_Material_Tabs_Selector[Instance].RelativePosition[0] = _Material_Tabs_AnimationPositionStart[Instance] + _Material_Tabs_AnimationPositionDistance[Instance] / Duration * MathLib::Sin(MathLib::PI() * Step / (Duration * 1.));
-	_Material_Tabs_Selector[Instance].RelativePosition[0] = _Material_Tabs_AnimationPositionStart[Instance] + _Material_Tabs_AnimationPositionDistance[Instance] / Duration * Step;
+	_Material_Tabs_Selector[Instance].Size[0] = _Material_Tabs_AnimationSizeStart[Instance] + _Material_Tabs_AnimationSizeDistance[Instance] * MathLib::Sin(Step * MathLib::PI()/(Duration * 1.));
+	_Material_Tabs_Selector[Instance].RelativePosition[0] = _Material_Tabs_AnimationPositionStart[Instance] + _Material_Tabs_AnimationPositionDistance[Instance] * MathLib::Sin(Step * MathLib::PI()/(Duration * 1.));
 	if (_Material_Tabs_Selector[Instance].RelativePosition[0] == _Material_Tabs_AnimationPositionStart[Instance] + _Material_Tabs_AnimationPositionDistance[Instance]) {
 		_Material_Tabs_AnimationQueue.remove(Instance);
 		declare Text Value;
-		declare Target = _Material_Tabs_Selected[_Instance];
+		declare Target = _Material_Tabs_Selected[Instance];
 		if (Target.DataAttributeExists("value")) Value = Target.DataAttributeGet("value");
 		else Value = Target.Value;
 		Material_SendEvent(MATERIAL_EVENT_TAB_SELECTED, ["TabGroup"=>_Instance, "Index"=>""^_Index, "Value"=>Value]);
@@ -150,3 +175,26 @@ Void _Material_Tabs_AnimationStart(Text _Instance, Integer _Index) {
 	Material_SendEvent(MATERIAL_EVENT_TAB_CLICK, ["TabGroup"=>_Instance, "Index"=>""^_Index, "Value"=>Value]);
 	_Material_Tabs_Selected[_Instance] = Target;
 }
+Text[Text] Material_Tabs_Values(Text _Instance) {
+	declare Text[Text] Result = Text[Text];
+	if (_Material_Tabs_Labels.existskey(_Instance)) {
+		foreach (Label in _Material_Tabs_Labels[_Instance]) {
+			declare Text Key;
+			if (Label.DataAttributeExists("value")) Key = Label.DataAttributeGet("value");
+			else Key = Label.Value;
+			Result[Key] = Label.Value;
+		}
+	}
+	return Result;
+}
+/*Void Material_Tabs_Values(Text _Instance, Text[Text] _Values) {
+	if (_Material_Tabs_Labels.existskey(_Instance)) {
+		declare i = 0;
+		foreach (Value => Name in _Values) {
+			if (i >= _Material_Tabs_Labels[_Instance].count) break;
+			_Material_Tabs_Labels[_Instance][i].DataAttributeSet("value", Value);
+			_Material_Tabs_Labels[_Instance][i].Value = Name;
+			i += 1;
+		}
+	}
+}*/
