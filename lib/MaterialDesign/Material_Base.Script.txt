@@ -1,6 +1,8 @@
 #Include "TextLib" as TextLib
 #Include "MathLib" as MathLib
 
+#Const MATERIAL_EVENT_COLOR_CHANGED "MATERIAL_EVENT_COLOR_CHANGED"
+
 /********************* Math *********************/
 Real _Material_Math_Max(Real _A1, Real _A2) {
 	if (_A1 >= _A2) return _A1; return _A2;
@@ -71,6 +73,33 @@ Integer _Material_Math_Boundaries(Integer _Value, Integer _Lower, Integer _Upper
 	return _Material_Math_Min(_Material_Math_Max(_Lower, _Value), _Upper);
 }
 
+
+/******************* Base ***********************/
+Vec3 _Material_ElementCenter(CMlControl _Control) {
+	declare Vec2 Size = _Control.Size * _Control.AbsoluteScale;
+	declare Vec3 Pos = _Control.AbsolutePosition;
+	if (_Control.VerticalAlign == CMlControl::AlignVertical::Bottom) Pos.Y += Size[1] / 2;
+	if (_Control.VerticalAlign == CMlControl::AlignVertical::Top) Pos.Y -= Size[1] / 2;
+	if (_Control.HorizontalAlign == CMlControl::AlignHorizontal::Right) Pos.X -= Size[0] / 2;
+	if (_Control.HorizontalAlign == CMlControl::AlignHorizontal::Left) Pos.X += Size[0] / 2;
+	return Pos;
+}
+declare Text[Text][] Material_PendingEvents;
+Void Material_SendEvent(Text _Type, Text[Text] _Data) {
+	declare Text[Text] Data = _Data;
+	Data["Type"] = _Type;
+	Data["Time"] = TextLib::ToText(Now);
+	Material_PendingEvents.add(Data);
+}
+declare Boolean _Material_SettingsSet;
+***Material_GameLoop***
+***
+if (!_Material_SettingsSet) {
+	_Material_Settings();
+	_Material_ColorizeControls();
+}
+Material_PendingEvents = Text[Text][];
+***
 
 /********************* Color ********************/
 Vec3 _Material_Color_Boundarize(Vec3 _RGB) {
@@ -144,6 +173,7 @@ declare Boolean _Material_ColorPrimary_Set;
 declare Vec3 _Material_ColorPrimaryDark;
 declare Boolean _Material_ColorPrimaryDark_Set;
 Void Material_ColorAccent(Vec3 _Value) {
+	Material_SendEvent(MATERIAL_EVENT_COLOR_CHANGED, ["ColorType"=>"Accent", "ColorOld"=>TextLib::ColorToText(_Material_ColorAccent), "ColorNew"=>TextLib::ColorToText(_Value)]);
 	_Material_ColorAccent = _Value;
 	_Material_ColorAccent_Set = True;
 }
@@ -152,6 +182,7 @@ Vec3 Material_ColorAccent() {
 	return _Material_ColorAccent;
 }
 Void Material_ColorPrimary(Vec3 _Value) {
+	Material_SendEvent(MATERIAL_EVENT_COLOR_CHANGED, ["ColorType"=>"Primary", "ColorOld"=>TextLib::ColorToText(_Material_ColorPrimary), "ColorNew"=>TextLib::ColorToText(_Value)]);
 	_Material_ColorPrimary = _Value;
 	_Material_ColorPrimary_Set = True;
 	_Material_ColorPrimaryDark = Material_Color_Darken(_Value, .2);
@@ -162,6 +193,7 @@ Vec3 Material_ColorPrimary() {
 	return _Material_ColorPrimary;
 }
 Void Material_ColorPrimaryDark(Vec3 _Value) {
+	Material_SendEvent(MATERIAL_EVENT_COLOR_CHANGED, ["ColorType"=>"PrimaryDark", "ColorOld"=>TextLib::ColorToText(_Material_ColorPrimaryDark), "ColorNew"=>TextLib::ColorToText(_Value)]);
 	_Material_ColorPrimaryDark = _Value;
 	_Material_ColorPrimaryDark_Set = True;
 }
@@ -169,41 +201,41 @@ Vec3 Material_ColorPrimaryDark() {
 	if (!_Material_ColorPrimaryDark_Set) return Material_Color_PaletteVec("Teal", 700);
 	return _Material_ColorPrimaryDark;
 }
-
-/******************* Base ***********************/
-/*Text _Material_Typeof(CMlControl c) 
-{
-	switchtype(c) {
-		case CMlCamera: { return "CMlCamera"; }
-		case CMlEntry: { return "CMlEntry"; }
-		case CMlFrame: { return "CMlFrame"; }
-		case CMlGauge: { return "CMlGauge"; }
-		case CMlGraph: { return "CMlGraph"; }
-		case CMlLabel: { return "CMlLabel"; }
-		case CMlMediaPlayer: { return "CMlMediaPlayer"; }
-		case CMlMinimap: { return "CMlMinimap"; }
-		case CMlQuad: { return "CMlQuad"; }
-		default: { return "unknown"; }
+Vec3 Material_ColorText(Vec3 _Background) {
+	declare Vec3 Color = _Background * 255;
+	declare Real Brightness = MathLib::Sqrt(.241 * Color.X * Color.X
+										  + .691 * Color.Y * Color.Y
+										  + .068 * Color.Z * Color.Z);
+	if (Brightness >= 130) return <0., 0., 0.>;
+	return <1., 1., 1.>;
+}
+Vec3 Material_ColorText() {
+	return Material_ColorText(Material_ColorPrimary());
+}
+Void __Material_ColorizeControl(CMlControl _Control, Vec3 _Color) {
+	if (_Control is CMlQuad) {
+		declare Quad <=> (_Control as CMlQuad);
+		if (Quad.Style == "" && Quad.ImageUrl == "") Quad.BgColor = _Color;
+		if (Quad.Style != "" && Quad.ImageUrl == "") Quad.Colorize = _Color;
+		if (Quad.Style == "" && Quad.ImageUrl != "") Quad.ModulateColor = _Color;
 	}
-	return "unknown";
-}*/
-Vec3 _Material_ElementCenter(CMlControl _Control) {
-	declare Vec2 Size = _Control.Size * _Control.AbsoluteScale;
-	declare Vec3 Pos = _Control.AbsolutePosition;
-	if (_Control.VerticalAlign == CMlControl::AlignVertical::Bottom) Pos.Y += Size[1] / 2;
-	if (_Control.VerticalAlign == CMlControl::AlignVertical::Top) Pos.Y -= Size[1] / 2;
-	if (_Control.HorizontalAlign == CMlControl::AlignHorizontal::Right) Pos.X -= Size[0] / 2;
-	if (_Control.HorizontalAlign == CMlControl::AlignHorizontal::Left) Pos.X += Size[0] / 2;
-	return Pos;
+	if (_Control is CMlLabel) (_Control as CMlLabel).TextColor = _Color;
 }
-declare Text[Text][] Material_PendingEvents;
-Void Material_SendEvent(Text _Type, Text[Text] _Data) {
-	declare Text[Text] Data = _Data;
-	Data["Type"] = _Type;
-	Data["Time"] = TextLib::ToText(Now);
-	Material_PendingEvents.add(Data);
+Void _Material_ColorizeControls() {
+	Page.GetClassChildren("Material_Primary", Page.MainFrame, True);
+	foreach (Control in Page.GetClassChildren_Result) { __Material_ColorizeControl(Control, Material_ColorPrimary()); }
+	Page.GetClassChildren("Material_PrimaryDark", Page.MainFrame, True);
+	foreach (Control in Page.GetClassChildren_Result) { __Material_ColorizeControl(Control, Material_ColorPrimaryDark()); }
+	Page.GetClassChildren("Material_Accent", Page.MainFrame, True);
+	foreach (Control in Page.GetClassChildren_Result) { __Material_ColorizeControl(Control, Material_ColorAccent()); }
 }
-***Material_GameLoop***
-***
-Material_PendingEvents = Text[Text][];
-***
+Void _Material_Settings() {
+	declare CMlControl Options = Page.GetFirstChild("Material_Options");
+	if (Options != Null) {
+		if (Options.DataAttributeExists("color-primary")) Material_ColorPrimary(TextLib::ToColor(Options.DataAttributeGet("color-primary")));
+		if (Options.DataAttributeExists("color-primary-dark")) Material_ColorPrimaryDark(TextLib::ToColor(Options.DataAttributeGet("color-primary-dark")));
+		if (Options.DataAttributeExists("color-accent")) Material_ColorAccent(TextLib::ToColor(Options.DataAttributeGet("color-accent")));
+		Options.Hide();
+	}
+	_Material_SettingsSet = True;
+}
