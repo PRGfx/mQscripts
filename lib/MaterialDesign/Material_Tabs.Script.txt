@@ -1,0 +1,152 @@
+#Const MATERIAL_EVENT_TAB_CLICK		"MATERIAL_EVENT_TAB_CLICK"
+#Const MATERIAL_EVENT_TAB_SELECTED	"MATERIAL_EVENT_TAB_SELECTED"
+
+declare Boolean _Material_Tabs_IsInit;
+declare CMlLabel[][Text] _Material_Tabs_Labels;
+declare CMlQuad[Text] _Material_Tabs_Selector;
+declare Text[CMlControl] _Material_Tabs_Groups;
+declare Boolean[Text] _Material_Tabs_AnimationLock;
+declare Integer[Text] _Material_Tabs_AnimationStart;
+declare Text[] _Material_Tabs_AnimationQueue;
+declare Real[Text] _Material_Tabs_AnimationSizeStart;
+declare Real[Text] _Material_Tabs_AnimationSizeDistance;
+declare Real[Text] _Material_Tabs_AnimationPositionStart;
+declare Real[Text] _Material_Tabs_AnimationPositionDistance;
+declare CMlLabel[Text] _Material_Tabs_Selected;
+
+Void _Material_Tabs_Select(Text _FrameId, Integer _Index) {
+	declare CMlLabel Label = _Material_Tabs_Labels[_FrameId][_Index];
+	_Material_Tabs_Selector[_FrameId].Opacity = 1.;
+	_Material_Tabs_Selector[_FrameId].Show();
+	_Material_Tabs_Selector[_FrameId].HorizontalAlign = CMlControl::AlignHorizontal::HCenter;
+	_Material_Tabs_Selector[_FrameId].Size = <Label.Size[0], .8>;
+	_Material_Tabs_Selector[_FrameId].RelativePosition = <Label.RelativePosition.X, -7.2, 1.>;
+	_Material_Tabs_Selected[_FrameId] = Label;
+}
+Void _Material_Tabs_Init() {
+	Page.GetClassChildren("Material_Tabs", Page.MainFrame, True);
+	foreach (Control in Page.GetClassChildren_Result) {
+		if (Control is CMlFrame) {
+			declare Frame <=> (Control as CMlFrame);
+			declare BoundingBox <=> (Frame.GetFirstChild("Boundingbox") as CMlQuad);
+			if (BoundingBox == Null) {
+				log("[WARN][Material_Tabs] No Quad with id 'Boundingbox' found!");
+				continue;
+			}
+			declare Text _Instance = Frame.ControlId;
+			if (_Instance == "") _Instance = "Material_Tabs_" ^ _Material_Tabs_Labels.count;
+			_Material_Tabs_Labels[_Instance] = CMlLabel[];
+			_Material_Tabs_Selector[_Instance] = BoundingBox;
+			declare Vec2 BoundingSize = BoundingBox.Size * BoundingBox.AbsoluteScale;
+			BoundingSize[1] = 8.;
+			declare offset = Frame.RelativePosition - Frame.AbsolutePosition;
+			Frame.RelativePosition += offset;
+			declare Real StartPos;
+			declare Vec3 BoundingPosition = BoundingBox.AbsolutePosition;
+			if (BoundingBox.HorizontalAlign == CMlControl::AlignHorizontal::Right) {
+				BoundingPosition.X -= BoundingSize[0];
+				StartPos = -1.;
+			}
+			if (BoundingBox.HorizontalAlign == CMlControl::AlignHorizontal::HCenter) {
+				BoundingPosition.X -= BoundingSize[0] / 2;
+				StartPos = -2.;
+			}
+			if (BoundingBox.VerticalAlign== CMlControl::AlignVertical::Bottom) BoundingPosition.Y += BoundingSize[1];
+			if (BoundingBox.VerticalAlign== CMlControl::AlignVertical::VCenter) BoundingPosition.Y += BoundingSize[1] / 2;
+			Frame.RelativePosition += BoundingPosition - Frame.AbsolutePosition;
+			BoundingBox.VerticalAlign = CMlControl::AlignVertical::Top;
+			if (Frame.DataAttributeExists("color")) BoundingBox.BgColor = TextLib::ToColor(Frame.DataAttributeGet("color"));
+			else BoundingBox.BgColor = Material_ColorAccent();
+			declare Real Width;
+			declare Real[CMlLabel] Widths;
+			declare Integer ElementCount;
+			declare Real Padding = 4.;
+			declare Integer SelectedIndex = 0;
+			foreach (i=>Control in Frame.Controls) {
+				if (Control is CMlLabel) {
+					declare Label = (Control as CMlLabel);
+					ElementCount += 1;
+					Width += Label.ComputeWidth(Label.Value);
+					Widths[Label] = Label.ComputeWidth(Label.Value);
+					Label.TextColor = Material_ColorText();
+					Label.HorizontalAlign = CMlControl::AlignHorizontal::HCenter;
+					Label.VerticalAlign = CMlControl::AlignVertical::VCenter;
+					Label.RelativePosition.Y = - BoundingSize[1] / 2;
+					Label.RelativePosition.Z = 2.;
+					Label.Style = "TextStaticMedium";
+					Label.RelativeScale = 1.;
+					Label.TextSize = 3;
+					Label.Opacity = 1.;
+					Label.DataAttributeSet("tabindex", ""^(i-1));
+					if (Label.DataAttributeExists("enabled") && Label.DataAttributeGet("enabled")=="false") {
+						Label.Opacity = 0.6;
+					}
+					if (Label.DataAttributeExists("selected") && Label.DataAttributeGet("selected")=="true") {
+						SelectedIndex = i - 1;
+					}
+					_Material_Tabs_Labels[_Instance].add(Label);
+					_Material_Tabs_Groups[Label] = _Instance;
+				}
+			}
+			declare Fits = Width + Padding * 2 * _Material_Tabs_Labels[_Instance].count <= BoundingSize[0];
+			declare RelativeWidth = BoundingSize[0] / (Width + Padding * 2 * _Material_Tabs_Labels[_Instance].count);
+			declare Real Width2;
+			foreach (Label in _Material_Tabs_Labels[_Instance]) {
+				if (Fits) Label.Size = <Padding * 2 + Widths[Label], BoundingSize[1]>;
+				else Label.Size = <(Padding * 2 + Widths[Label]) * RelativeWidth, BoundingSize[1]>;
+				Width2 += Label.Size[0];
+			}
+			if (StartPos == -1) StartPos = BoundingSize[0] - Width2;
+			if (StartPos == -2) StartPos = (BoundingSize[0] - Width2) / 2;
+			declare Real Offset = StartPos;
+			foreach (Label in _Material_Tabs_Labels[_Instance]) {
+				Offset += Label.Size[0];
+				Label.RelativePosition.X = Offset - Label.Size[0] / 2;
+			}
+			_Material_Tabs_Select(_Instance, SelectedIndex);
+		}
+	}
+	_Material_Tabs_IsInit = True;
+}
+***Material_GameLoop***
+***
+if (!_Material_Tabs_IsInit) _Material_Tabs_Init();
+foreach (Event in PendingEvents) {
+	if (Event.Type == CMlEvent::Type::MouseClick) {
+		if (_Material_Tabs_Groups.existskey(Event.Control)) {
+			if (!Event.Control.DataAttributeExists("enabled") || Event.Control.DataAttributeGet("enabled")!="false") {
+				_Material_Tabs_AnimationStart(_Material_Tabs_Groups[Event.Control], TextLib::ToInteger(Event.Control.DataAttributeGet("tabindex")));
+			}
+		}
+	}
+}
+foreach (Instance in _Material_Tabs_AnimationQueue) {
+	declare Duration = 30;
+	declare Step = (Now - _Material_Tabs_AnimationStart[Instance]) / 8;
+	_Material_Tabs_Selector[Instance].Size[0] = _Material_Tabs_AnimationSizeStart[Instance] + _Material_Tabs_AnimationSizeDistance[Instance] / Duration * Step;
+	//_Material_Tabs_Selector[Instance].RelativePosition[0] = _Material_Tabs_AnimationPositionStart[Instance] + _Material_Tabs_AnimationPositionDistance[Instance] / Duration * MathLib::Sin(MathLib::PI() * Step / (Duration * 1.));
+	_Material_Tabs_Selector[Instance].RelativePosition[0] = _Material_Tabs_AnimationPositionStart[Instance] + _Material_Tabs_AnimationPositionDistance[Instance] / Duration * Step;
+	if (_Material_Tabs_Selector[Instance].RelativePosition[0] == _Material_Tabs_AnimationPositionStart[Instance] + _Material_Tabs_AnimationPositionDistance[Instance]) {
+		_Material_Tabs_AnimationQueue.remove(Instance);
+		declare Text Value;
+		declare Target = _Material_Tabs_Selected[_Instance];
+		if (Target.DataAttributeExists("value")) Value = Target.DataAttributeGet("value");
+		else Value = Target.Value;
+		Material_SendEvent(MATERIAL_EVENT_TAB_SELECTED, ["TabGroup"=>_Instance, "Index"=>""^_Index, "Value"=>Value]);
+	}
+}
+***
+Void _Material_Tabs_AnimationStart(Text _Instance, Integer _Index) {
+	_Material_Tabs_AnimationStart[_Instance] = Now;
+	_Material_Tabs_AnimationQueue.add(_Instance);
+	declare Target = _Material_Tabs_Labels[_Instance][_Index];
+	_Material_Tabs_AnimationSizeStart[_Instance] = _Material_Tabs_Selector[_Instance].Size[0];
+	_Material_Tabs_AnimationSizeDistance[_Instance] = Target.Size[0] - _Material_Tabs_Selector[_Instance].Size[0];
+	_Material_Tabs_AnimationPositionStart[_Instance] = _Material_Tabs_Selector[_Instance].RelativePosition.X;
+	_Material_Tabs_AnimationPositionDistance[_Instance] = Target.RelativePosition.X - _Material_Tabs_Selector[_Instance].RelativePosition.X;
+	declare Text Value;
+	if (Target.DataAttributeExists("value")) Value = Target.DataAttributeGet("value");
+	else Value = Target.Value;
+	Material_SendEvent(MATERIAL_EVENT_TAB_CLICK, ["TabGroup"=>_Instance, "Index"=>""^_Index, "Value"=>Value]);
+	_Material_Tabs_Selected[_Instance] = Target;
+}
