@@ -9,6 +9,7 @@ declare CMlFrame _Material_Ripple_Container;
 declare CMlFrame[] _Material_Ripple_Animate;
 declare Integer[CMlFrame] _Material_Ripple_AnimationStart;
 declare Integer[CMlControl] _Material_Ripple_AnimationLock;
+declare Boolean[CMlControl] _Material_Ripple_Enabled;
 declare CMlControl[] _Material_Ripple_Triggers;
 declare Vec2[CMlControl] _Material_Ripple_BoundingSize;
 declare Vec2[CMlControl] _Material_Ripple_BoundingPosition;
@@ -24,13 +25,14 @@ Void Material_Ripple_Init(CMlFrame _Container) {
 		if (Control is CMlFrame) _Material_Ripple_Queue.add((Control as CMlFrame));
 		Control.Hide();
 	}
-	_Material_Ripple_AnimationDuration = 400;
+	_Material_Ripple_AnimationDuration = 350;
 	_Material_Ripple_AnimationFrames = 25;
 	_Material_Ripple_IsInit = _Material_Ripple_Queue.count > 0;
 }
 Void Material_Ripple(CMlControl _Trigger, Vec3 _BoundingPosition, Vec2 _BoundingSize, Vec3 _Color) {
 	if (_Material_Ripple_IsInit) {
 		_Material_Ripple_Triggers.add(_Trigger);
+		_Material_Ripple_Enabled[_Trigger] = True;
 		_Material_Ripple_Color[_Trigger] = _Color;
 		_Material_Ripple_BoundingPosition[_Trigger] = <0., 0.>;
 		_Material_Ripple_BoundingPosition[_Trigger].X = _BoundingPosition.X;
@@ -66,7 +68,7 @@ Void Material_Ripple(Text _BoundingBoxId) {
 	Material_Ripple(Page.GetFirstChild(_BoundingBoxId), Material_ColorAccent());
 }
 Void _Material_Ripple_Start(CMlControl _Trigger) {
-	if (_Material_Ripple_IsInit && (!_Material_Ripple_AnimationLock.existskey(_Trigger) || Now - _Material_Ripple_AnimationLock[_Trigger] >= 100)) {
+	if (_Material_Ripple_IsInit && (!_Material_Ripple_AnimationLock.existskey(_Trigger) || Now - _Material_Ripple_AnimationLock[_Trigger] >= 100) && _Material_Ripple_Enabled[_Trigger]) {
 		declare CMlFrame Current = _Material_Ripple_Queue[_Material_Ripple_Queue_Index];
 		_Material_Ripple_Queue_Index = (_Material_Ripple_Queue_Index + 1) % _Material_Ripple_Queue.count;
 		Current.Show();
@@ -123,8 +125,19 @@ foreach(Ripple in _Material_Ripple_Animate) {
 	Quad.Opacity = AnimLib::EaseInOutQuad(step, 0.2, 0.03, _Material_Ripple_AnimationFrames);
 	Quad.RelativePosition = _Material_Ripple_StartPos[Ripple] + AnimLib::EaseInOutQuad(step, 0., 0.1, _Material_Ripple_AnimationFrames) * _Material_Ripple_TargetPos[Ripple];
 	if ((Now - _Material_Ripple_AnimationStart[Ripple]) >= _Material_Ripple_Duration[Quad]) {
-		_Material_Ripple_Animate.remove(Ripple);
-		Ripple.Hide();
+		if (!_Material_Ripple_StillPressed[Quad]) {
+			_Material_Ripple_Animate.remove(Ripple);
+			Ripple.Hide();			
+		}
 	}
 }
 ***
+Void Material_Ripple_Unbind(CMlControl _Trigger) {
+	_Material_Ripple_Triggers.remove(_Trigger);
+}
+Void Material_Ripple_Enabled(CMlControl _Trigger, Boolean _Enabled) {
+	_Material_Ripple_Enabled[_Trigger] = _Enabled;
+}
+Boolean Material_Ripple_Enabled(CMlControl _Trigger) {
+	return _Material_Ripple_Enabled.existskey(_Trigger) && _Material_Ripple_Enabled[_Trigger];
+}
