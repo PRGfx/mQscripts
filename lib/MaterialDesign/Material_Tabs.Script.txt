@@ -28,6 +28,14 @@ Boolean Material_Tabs_Enabled(Text _Instance, Integer _Index) {
 		return !_Material_Tabs_Labels[_Instance][_Index].DataAttributeExists("enabled") || _Material_Tabs_Labels[_Instance][_Index].DataAttributeGet("enabled")!="false";
 	return False;
 }
+Integer Material_Tabs_Selected(Text _Instance) {
+	if (_Material_Tabs_Labels.existskey(_Instance))
+		return _Material_Tabs_Labels[_Instance].keyof(_Material_Tabs_Selected[_Instance]);
+	return -1;
+}
+Boolean Material_Tabs_Selected(Text _Instance, Integer _Index) {
+	return Material_Tabs_Selected(_Instance) == _Index;
+}
 Void Material_Tabs_Enabled(Text _Instance, Integer _Index, Boolean _Enabled) {
 	if (_Material_Tabs_Labels.existskey(_Instance) && _Material_Tabs_Labels[_Instance].count >= _Index) {
 		declare Text Enabled = "true";
@@ -157,7 +165,7 @@ foreach (Instance in _Material_Tabs_AnimationQueue) {
 		declare Target = _Material_Tabs_Selected[Instance];
 		if (Target.DataAttributeExists("value")) Value = Target.DataAttributeGet("value");
 		else Value = Target.Value;
-		Material_SendEvent(MATERIAL_EVENT_TAB_SELECTED, ["TabGroup"=>_Instance, "Index"=>""^_Index, "Value"=>Value]);
+		Material_SendEvent(MATERIAL_EVENT_TAB_SELECTED, ["TabGroup"=>Instance, "Index"=>""^_Material_Tabs_Labels[Instance].keyof(Target), "Value"=>Value]);
 	}
 }
 ***
@@ -186,6 +194,16 @@ Text[Text] Material_Tabs_Values(Text _Instance) {
 		}
 	}
 	return Result;
+}
+Text Material_Tabs_Id(Text _Instance) {
+	if (_Material_Tabs_Labels.existskey(_Instance)) {
+		declare Text Value;
+		declare Target = _Material_Tabs_Selected[_Instance];
+		if (Target.DataAttributeExists("value")) Value = Target.DataAttributeGet("value");
+		else Value = Target.Value;
+		return Value;
+	}
+	return "";
 }
 /*Void Material_Tabs_Values(Text _Instance, Text[Text] _Values) {
 	if (_Material_Tabs_Labels.existskey(_Instance)) {
