@@ -1,0 +1,246 @@
+declare Boolean _Material_Slider_IsInit;
+declare Integer _Material_Slider_Counter;
+declare CMlQuad _Material_Slider_Active;
+declare Real[CMlFrame] _Material_Slider_Value;
+declare Vec3[CMlFrame] _Material_Slider_Range;
+declare CMlFrame[CMlControl] _Material_Slider_GetTooltip;
+declare CMlFrame[CMlControl] _Material_Slider_GetFrame;
+declare CMlQuad[CMlControl] _Material_Slider_GetProgress;
+declare CMlQuad[CMlControl] _Material_Slider_GetBackground;
+declare CMlQuad[CMlControl] _Material_Slider_GetHandle;
+declare CMlLabel[CMlFrame] _Material_Slider_TooltipText;
+declare CMlFrame[] _Material_Slider_TooltipAnimationQueue;
+declare Integer[CMlFrame] _Material_Slider_TooltipAnimationStart;
+declare Real[CMlFrame] _Material_Slider_TooltipAnimationStartValue;
+declare CMlFrame[] _Material_Slider_AnimationQueue;
+declare Integer[CMlFrame] _Material_Slider_AnimationStart;
+declare Real[CMlFrame] _Material_Slider_AnimationStartValue;
+declare Real[CMlFrame] _Material_Slider_AnimationDistance;
+Text Material_Slider(CMlFrame _Container, Real _Min, Real _Max, Real _Step, Real _Value, Vec3 _Color) {
+	_Material_Slider_Counter += 1;
+	declare Instance = _Container.ControlId;
+	if (_Container.ControlId == "") Instance = "Material_Slider_" ^ _Material_Slider_Counter;
+	declare Background = (_Container.GetFirstChild("Background") as CMlQuad);
+	if (Background == Null) { log("[WARN][Material_Slider] Missing 'Background' quad."); return "";}
+	declare Progress = (_Container.GetFirstChild("Progress") as CMlQuad);
+	if (Progress == Null) { log("[WARN][Material_Slider] Missing 'Progress' quad."); return "";}
+	declare Handle = (_Container.GetFirstChild("Handle") as CMlQuad);
+	if (Handle == Null) { log("[WARN][Material_Slider] Missing 'Handle' quad."); return "";}
+	
+	declare offset = _Container.RelativePosition - _Container.AbsolutePosition;
+	_Container.RelativePosition += offset;
+	declare BackgroundCenter = _Material_ElementCenter(Background);
+	_Container.RelativePosition.X -= BackgroundCenter.X + Background.Size.X * Background.AbsoluteScale * 0.5;
+	_Container.RelativePosition.Y += BackgroundCenter.Y + Background.Size.Y * Background.AbsoluteScale * 0.5;
+	Background.Show();
+	Background.RelativePosition = <0., 0., Background.RelativePosition.Z>;
+	Background.Size.Y = 0.4;
+	Background.RelativeScale = 1.;
+	Background.Opacity = 0.7;
+	Background.BgColor = TextLib::ToColor("777");
+	Background.HorizontalAlign = CMlControl::AlignHorizontal::Left;
+	Background.VerticalAlign = CMlControl::AlignVertical::Top;
+	Progress.Show();
+	Progress.RelativePosition = Background.RelativePosition + <0., 0., 1.>;
+	Progress.RelativePosition.Y += (1 - Background.Size.Y) / 2;
+	Progress.Size.X = Background.Size.X / (_Max - _Min) * _Value;
+	Progress.Size.Y = 1.;
+	Progress.RelativeScale = 1.;
+	Progress.Opacity = 1.;
+	Progress.BgColor = _Color;
+	Progress.HorizontalAlign = CMlControl::AlignHorizontal::Left;
+	Progress.VerticalAlign = CMlControl::AlignVertical::Top;
+	Handle.HorizontalAlign = CMlControl::AlignHorizontal::HCenter;
+	Handle.VerticalAlign = CMlControl::AlignVertical::VCenter;
+	Handle.ImageUrl = "http://trollgil.de/md/img/generic_disk.png";
+	Handle.Size = <2., 2.>;
+	Handle.RelativePosition.X = Progress.RelativePosition.X + Progress.Size.X;
+	Handle.RelativePosition.Z = Progress.RelativePosition.Z + 2;
+	Handle.RelativePosition.Y = Progress.RelativePosition.Y - Progress.Size.Y / 2;// - Handle.Size.Y / 2;
+	Handle.ModulateColor = _Color;
+	Background.DataAttributeSet("role", "Material_Slider_Background");
+	Progress.DataAttributeSet("role", "Material_Slider_Progress");
+	Handle.DataAttributeSet("role", "Material_Slider_Handle");
+	_Material_Slider_GetFrame[Background] = _Container;
+	_Material_Slider_GetFrame[Progress] = _Container;
+	_Material_Slider_GetFrame[Handle] = _Container;
+	_Material_Slider_GetBackground[Handle] = Background;
+	_Material_Slider_GetBackground[_Container] = Background;
+	_Material_Slider_GetProgress[Background] = Progress;
+	_Material_Slider_GetProgress[Handle] = Progress;
+	_Material_Slider_GetProgress[_Container] = Progress;
+	_Material_Slider_GetHandle[_Container] = Handle;
+	_Material_Slider_Range[_Container] = <_Min, _Max, _Step>;
+	_Material_Slider_Value[_Container] = _Value;
+
+	// Tooltip
+	declare Tooltip = (_Container.GetFirstChild("Tooltip") as CMlFrame);
+	if (Tooltip != Null && (Tooltip is CMlFrame)) {
+		declare CMlQuad TooltipBg;
+		declare CMlLabel TooltipTitle;
+		foreach (Control in Tooltip.Controls) {
+			if (TooltipBg == Null && (Control is CMlQuad)) TooltipBg = (Control as CMlQuad);
+			else if (TooltipTitle == Null && (Control is CMlLabel)) TooltipTitle = (Control as CMlLabel);
+			else Control.Hide();
+		}
+		if (TooltipBg != Null && TooltipTitle != Null) {
+			TooltipBg.ImageUrl = "http://trollgil.de/md/img/sliderbubble.png";
+			TooltipBg.Opacity = 0.8;
+			TooltipBg.ModulateColor = TextLib::ToColor("111");
+			TooltipBg.HorizontalAlign = CMlControl::AlignHorizontal::HCenter;
+			TooltipBg.VerticalAlign = CMlControl::AlignVertical::Bottom;
+			TooltipBg.Size = <6., 8.>;
+			TooltipTitle.Size = <5., 4.>;
+			TooltipTitle.TextSize = 1;
+			TooltipTitle.TextColor = TextLib::ToColor("FFF");
+			TooltipTitle.HorizontalAlign = CMlControl::AlignHorizontal::HCenter;
+			TooltipTitle.Opacity = 1.;
+			TooltipTitle.RelativePosition = <0., 5.8, 1.>;
+			Tooltip.RelativeScale = 0.;
+			Tooltip.RelativePosition.Z = 60.;
+			_Material_Slider_TooltipText[Tooltip] = TooltipTitle;
+		} else {
+			Tooltip = Null;
+		}
+	}
+	_Material_Slider_GetTooltip[_Container] = Tooltip;
+	return Instance;
+}
+Void _Material_Slider_Init() {
+	if (!_Material_Slider_IsInit) {
+		_Material_Slider_IsInit = True;
+		Page.GetClassChildren("Material_Slider", Page.MainFrame, True);
+		foreach (Slider in Page.GetClassChildren_Result) {
+			if (!(Slider is CMlFrame)) continue;
+			declare Frame = (Slider as CMlFrame);
+			declare Min = 0.;
+			declare Max = 10.;
+			declare Step = 1.;
+			declare Color = Material_ColorAccent();
+			if (Slider.DataAttributeExists("min")) Min = TextLib::ToReal(Slider.DataAttributeGet("min"));
+			if (Slider.DataAttributeExists("max")) Max = TextLib::ToReal(Slider.DataAttributeGet("max"));
+			if (Max < Min) {
+				declare x = Min;
+				Min = Max;
+				Max = x;
+			}
+			if (Slider.DataAttributeExists("step")) Step = TextLib::ToReal(Slider.DataAttributeGet("step"));
+			if (Slider.DataAttributeExists("color")) Color = TextLib::ToColor(Slider.DataAttributeGet("color"));
+			declare Value = Min;
+			if (Slider.DataAttributeExists("value")) Value = TextLib::ToReal(Slider.DataAttributeGet("value"));
+			Value = MathLib::Min(Max, MathLib::Max(Min, Value));
+			Material_Slider(Frame, Min, Max, Step, Value, Color);
+		}
+	}
+}
+***Material_GameLoop***
+***
+if (!_Material_Slider_IsInit) _Material_Slider_Init();
+foreach (Event in PendingEvents) {
+	if (_Material_Slider_Active == Null && Event.Type == CMlEvent::Type::MouseOver && Event.Control.DataAttributeGet("role") == "Material_Slider_Handle") {
+		Event.Control.Size = <4., 4.>;
+	}
+	else if (_Material_Slider_Active == Null && Event.Type == CMlEvent::Type::MouseOut && Event.Control.DataAttributeGet("role") == "Material_Slider_Handle") {
+		Event.Control.Size = <2., 2.>;
+	}
+	else if (_Material_Slider_Active == Null && Event.Type == CMlEvent::Type::MouseClick && Event.Control.DataAttributeGet("role") == "Material_Slider_Handle") {
+		_Material_Slider_Active = (Event.Control as CMlQuad);
+		if (_Material_Slider_GetTooltip[_Material_Slider_GetFrame[Event.Control]] != Null) {
+			declare Tooltip = _Material_Slider_GetTooltip[_Material_Slider_GetFrame[Event.Control]];
+			_Material_Slider_TooltipAnimationQueue.add(Tooltip);
+			_Material_Slider_TooltipAnimationStart[Tooltip] = Now;
+			_Material_Slider_TooltipAnimationStartValue[Tooltip] = 0.;
+		}
+	}
+	else if (_Material_Slider_Active == Null && Event.Type == CMlEvent::Type::MouseClick && Event.Control.DataAttributeGet("role") == "Material_Slider_Background") {
+		declare Start = Event.Control.AbsolutePosition.X;
+		declare Width = Event.Control.Size.X;
+		declare X = MouseX - Start;
+		declare Frame = _Material_Slider_GetFrame[Event.Control];
+		declare Value = X / Width * (_Material_Slider_Range[Frame].Y - _Material_Slider_Range[Frame].X) + _Material_Slider_Range[Frame].X;
+		Material_Slider_SetValue(Frame, Value, True);
+		log(<X, MouseX, Value>);
+	}
+}
+if (_Material_Slider_Active != Null) {
+	declare Width = _Material_Slider_GetBackground[_Material_Slider_Active].Size.X;
+	declare Frame = _Material_Slider_GetFrame[_Material_Slider_Active];
+	declare Steps = (_Material_Slider_Range[Frame].Y - _Material_Slider_Range[Frame].X) / _Material_Slider_Range[Frame].Z;
+	declare Value = MathLib::NearestInteger(_Material_Slider_GetProgress[_Material_Slider_Active].Size.X / (Width / Steps)) * (Width / Steps);
+	Value *= (_Material_Slider_Range[Frame].Y - _Material_Slider_Range[Frame].X) / Width;
+	Value += _Material_Slider_Range[Frame].X;
+	if(MouseLeftButton) {
+		declare Start = _Material_Slider_GetBackground[_Material_Slider_Active].AbsolutePosition.X;
+		declare X = MathLib::Min(Start + Width, MathLib::Max(Start, MouseX)) - Start;
+		_Material_Slider_GetProgress[_Material_Slider_Active].Size.X = X;
+		_Material_Slider_Active.RelativePosition.X = X;
+		if (_Material_Slider_GetTooltip[_Material_Slider_GetFrame[_Material_Slider_Active]] != Null) {
+			declare Tooltip = _Material_Slider_GetTooltip[_Material_Slider_GetFrame[_Material_Slider_Active]];
+			Tooltip.RelativePosition.X = X;
+			Tooltip.RelativePosition.Y = _Material_Slider_Active.RelativePosition.Y + _Material_Slider_Active.Size.Y * _Material_Slider_Active.AbsoluteScale / 2;
+			_Material_Slider_TooltipText[Tooltip].Value = ""^Value;
+		}
+	}else{
+		if (!Material_MouseIsOver(_Material_Slider_Active))
+			_Material_Slider_Active.Size = <2., 2.>;
+		if (Frame.HasClass("Material_Slider_Discrete"))
+			Material_Slider_SetValue(Frame, Value, False);
+		if (_Material_Slider_GetTooltip[_Material_Slider_GetFrame[_Material_Slider_Active]] != Null) {
+			declare Tooltip = _Material_Slider_GetTooltip[_Material_Slider_GetFrame[_Material_Slider_Active]];
+			_Material_Slider_TooltipAnimationQueue.add(Tooltip);
+			_Material_Slider_TooltipAnimationStart[Tooltip] = Now;
+			_Material_Slider_TooltipAnimationStartValue[Tooltip] = 1.;
+		}
+		_Material_Slider_Active = Null;
+	}
+}
+foreach (Tooltip in _Material_Slider_TooltipAnimationQueue) {
+	declare Duration = 50.;
+	declare Frames = 26;
+	declare Step = (Now - _Material_Slider_TooltipAnimationStart[Tooltip]) * Frames / Duration;
+	if (_Material_Slider_TooltipAnimationStartValue[Tooltip] == 1)
+		Tooltip.RelativeScale = MathLib::Min(1., .0 + 0.1 * MathLib::Sin(1. * Step / Frames * MathLib::PI()));
+	else
+		Tooltip.RelativeScale = MathLib::Max(0., 1.0 - 0.1 * MathLib::Sin(1. * Step / Frames * MathLib::PI()));
+	Tooltip.RelativeScale = MathLib::Clamp(Tooltip.RelativeScale, 0., 1.);
+	if (Now - _Material_Slider_TooltipAnimationStart[Tooltip] >= Duration)
+		_Material_Slider_TooltipAnimationQueue.remove(Tooltip);
+}
+foreach (Frame in _Material_Slider_AnimationQueue) {
+	declare Duration = 100.;
+	declare Frames = 26.;
+	declare Step = (Now - _Material_Slider_AnimationStart[Frame]) * Frames / Duration;
+	declare Progress = _Material_Slider_AnimationStartValue[Frame] + _Material_Slider_AnimationDistance[Frame] * MathLib::Sin(1. * Step / Frames * MathLib::PI() / 2);
+	_Material_Slider_GetProgress[Frame].Size.X = Progress;
+	_Material_Slider_GetHandle[Frame].RelativePosition.X = Progress;
+	if (Now - _Material_Slider_AnimationStart[Frame] >= Duration)
+		_Material_Slider_AnimationQueue.remove(Frame);
+}
+***
+Void Material_Slider_SetValue(CMlFrame _Frame, Real _Value, Boolean _Animate) {
+	declare Value = MathLib::Clamp(_Value, _Material_Slider_Range[_Frame].X, _Material_Slider_Range[_Frame].Y);
+	declare Start = _Material_Slider_GetBackground[_Frame].AbsolutePosition.X;
+	declare Width = _Material_Slider_GetBackground[_Frame].Size.X;
+	declare Real Progress = Width / (_Material_Slider_Range[_Frame].Y - _Material_Slider_Range[_Frame].X) * (Value - _Material_Slider_Range[_Frame].X);
+	if (_Animate) {
+		_Material_Slider_AnimationQueue.add(_Frame);
+		_Material_Slider_AnimationStart[_Frame] = Now;
+		_Material_Slider_AnimationStartValue[_Frame] = _Material_Slider_GetProgress[_Frame].Size.X;
+		_Material_Slider_AnimationDistance[_Frame] = Progress - _Material_Slider_GetProgress[_Frame].Size.X;
+	} else {
+		_Material_Slider_GetProgress[_Frame].Size.X = Progress;
+		_Material_Slider_GetHandle[_Frame].RelativePosition.X = Progress;
+	}
+	_Material_Slider_Value[_Frame] = Progress;
+}
+Real Material_Slider_GetValue(CMlFrame _Frame) {
+	return _Material_Slider_Value[_Frame];
+}
+Void Material_Slider_SetColor(CMlFrame _Frame, Vec3 _Color) {
+	_Material_Slider_GetProgress[_Frame].BgColor = _Color;
+	_Material_Slider_GetHandle[_Frame].ModulateColor = _Color;
+}
+Void Material_Slider_SetColor(CMlFrame _Frame, CMlControl _None) {
+	_Material_Slider_GetProgress[_Frame].BgColor = Material_ColorAccent();
+	_Material_Slider_GetHandle[_Frame].ModulateColor = Material_ColorAccent();
+}

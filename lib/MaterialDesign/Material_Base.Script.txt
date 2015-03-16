@@ -84,6 +84,13 @@ Vec3 _Material_ElementCenter(CMlControl _Control) {
 	if (_Control.HorizontalAlign == CMlControl::AlignHorizontal::Left) Pos.X += Size[0] / 2;
 	return Pos;
 }
+Boolean Material_MouseIsOver(CMlControl _Control) {
+	declare Size = _Control.Size * _Control.AbsoluteScale;
+	declare Mid = _Material_ElementCenter(_Control);
+	declare InX = MouseX <= Mid.X + Size.X / 2 && MouseX >= Mid.X - Size.X / 2;
+	declare InY = MouseY <= Mid.Y + Size.Y / 2 && MouseY >= Mid.Y - Size.Y / 2;
+	return InX && InY;
+}
 declare Text[Text][] Material_PendingEvents;
 Void Material_SendEvent(Text _Type, Text[Text] _Data) {
 	declare Text[Text] Data = _Data;
