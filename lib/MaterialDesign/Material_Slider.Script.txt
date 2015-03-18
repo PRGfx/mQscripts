@@ -1,3 +1,8 @@
+#Const MATERIAL_EVENT_SLIDER_CHANGE		"MATERIAL_EVENT_SLIDER_CHANGE"
+#Const MATERIAL_EVENT_SLIDER_FOCUS		"MATERIAL_EVENT_SLIDER_FOCUS"
+#Const MATERIAL_EVENT_SLIDER_BLUR		"MATERIAL_EVENT_SLIDER_BLUR"
+#Const MATERIAL_EVENT_SLIDER_MOVE		"MATERIAL_EVENT_SLIDER_MOVE"
+
 declare Boolean _Material_Slider_IsInit;
 declare Integer _Material_Slider_Counter;
 declare CMlQuad _Material_Slider_Active;
@@ -16,6 +21,13 @@ declare CMlFrame[] _Material_Slider_AnimationQueue;
 declare Integer[CMlFrame] _Material_Slider_AnimationStart;
 declare Real[CMlFrame] _Material_Slider_AnimationStartValue;
 declare Real[CMlFrame] _Material_Slider_AnimationDistance;
+declare Boolean[CMlFrame] _Material_Slider_Enabled;
+Boolean Material_Slider_Enabled(CMlFrame _Slider) {
+	return !_Material_Slider_Enabled.existskey(_Slider) || _Material_Slider_Enabled[_Slider];
+}
+Void Material_Slider_Enabled(CMlFrame _Slider, Boolean _Enabled) {
+	_Material_Slider_Enabled[_Slider] = _Enabled;
+}
 Text Material_Slider(CMlFrame _Container, Real _Min, Real _Max, Real _Step, Real _Value, Vec3 _Color) {
 	_Material_Slider_Counter += 1;
 	declare Instance = _Container.ControlId;
@@ -27,10 +39,11 @@ Text Material_Slider(CMlFrame _Container, Real _Min, Real _Max, Real _Step, Real
 	declare Handle = (_Container.GetFirstChild("Handle") as CMlQuad);
 	if (Handle == Null) { log("[WARN][Material_Slider] Missing 'Handle' quad."); return "";}
 	
+	Material_Slider_Enabled(_Container, _Container.DataAttributeGet("enabled") != "false");
 	declare offset = _Container.RelativePosition - _Container.AbsolutePosition;
 	_Container.RelativePosition += offset;
 	declare BackgroundCenter = _Material_ElementCenter(Background);
-	_Container.RelativePosition.X -= BackgroundCenter.X + Background.Size.X * Background.AbsoluteScale * 0.5;
+	_Container.RelativePosition.X += BackgroundCenter.X - Background.Size.X * Background.AbsoluteScale * 0.5;
 	_Container.RelativePosition.Y += BackgroundCenter.Y + Background.Size.Y * Background.AbsoluteScale * 0.5;
 	Background.Show();
 	Background.RelativePosition = <0., 0., Background.RelativePosition.Z>;
@@ -138,28 +151,34 @@ Void _Material_Slider_Init() {
 if (!_Material_Slider_IsInit) _Material_Slider_Init();
 foreach (Event in PendingEvents) {
 	if (_Material_Slider_Active == Null && Event.Type == CMlEvent::Type::MouseOver && Event.Control.DataAttributeGet("role") == "Material_Slider_Handle") {
-		Event.Control.Size = <4., 4.>;
+		if (Material_Slider_Enabled(_Material_Slider_GetFrame[Event.Control]))
+			Event.Control.Size = <4., 4.>;
 	}
 	else if (_Material_Slider_Active == Null && Event.Type == CMlEvent::Type::MouseOut && Event.Control.DataAttributeGet("role") == "Material_Slider_Handle") {
 		Event.Control.Size = <2., 2.>;
 	}
 	else if (_Material_Slider_Active == Null && Event.Type == CMlEvent::Type::MouseClick && Event.Control.DataAttributeGet("role") == "Material_Slider_Handle") {
-		_Material_Slider_Active = (Event.Control as CMlQuad);
-		if (_Material_Slider_GetTooltip[_Material_Slider_GetFrame[Event.Control]] != Null) {
-			declare Tooltip = _Material_Slider_GetTooltip[_Material_Slider_GetFrame[Event.Control]];
-			_Material_Slider_TooltipAnimationQueue.add(Tooltip);
-			_Material_Slider_TooltipAnimationStart[Tooltip] = Now;
-			_Material_Slider_TooltipAnimationStartValue[Tooltip] = 0.;
+		if (Material_Slider_Enabled(_Material_Slider_GetFrame[Event.Control])) {
+			_Material_Slider_Active = (Event.Control as CMlQuad);
+			if (_Material_Slider_GetTooltip[_Material_Slider_GetFrame[Event.Control]] != Null) {
+				declare Tooltip = _Material_Slider_GetTooltip[_Material_Slider_GetFrame[Event.Control]];
+				_Material_Slider_TooltipAnimationQueue.add(Tooltip);
+				_Material_Slider_TooltipAnimationStart[Tooltip] = Now;
+				_Material_Slider_TooltipAnimationStartValue[Tooltip] = 0.;
+			}
+			Material_SendEvent(MATERIAL_EVENT_SLIDER_FOCUS, ["ControlId"=>_Material_Slider_GetFrame[Event.Control].ControlId]);
 		}
 	}
 	else if (_Material_Slider_Active == Null && Event.Type == CMlEvent::Type::MouseClick && Event.Control.DataAttributeGet("role") == "Material_Slider_Background") {
-		declare Start = Event.Control.AbsolutePosition.X;
-		declare Width = Event.Control.Size.X;
-		declare X = MouseX - Start;
-		declare Frame = _Material_Slider_GetFrame[Event.Control];
-		declare Value = X / Width * (_Material_Slider_Range[Frame].Y - _Material_Slider_Range[Frame].X) + _Material_Slider_Range[Frame].X;
-		Material_Slider_SetValue(Frame, Value, True);
-		log(<X, MouseX, Value>);
+		if (Material_Slider_Enabled(_Material_Slider_GetFrame[Event.Control])) {
+			declare Start = Event.Control.AbsolutePosition.X;
+			declare Width = Event.Control.Size.X;
+			declare X = MouseX - Start;
+			declare Frame = _Material_Slider_GetFrame[Event.Control];
+			declare Value = X / Width * (_Material_Slider_Range[Frame].Y - _Material_Slider_Range[Frame].X) + _Material_Slider_Range[Frame].X;
+			Material_Slider_SetValue(Frame, Value, True);
+			Material_SendEvent(MATERIAL_EVENT_SLIDER_CHANGE, ["ControlId"=>Frame.ControlId, "Value"=>TextLib::ToText(Value)]);
+		}
 	}
 }
 if (_Material_Slider_Active != Null) {
@@ -172,6 +191,8 @@ if (_Material_Slider_Active != Null) {
 	if(MouseLeftButton) {
 		declare Start = _Material_Slider_GetBackground[_Material_Slider_Active].AbsolutePosition.X;
 		declare X = MathLib::Min(Start + Width, MathLib::Max(Start, MouseX)) - Start;
+		if (_Material_Slider_GetProgress[_Material_Slider_Active].Size.X != X)
+			Material_SendEvent(MATERIAL_EVENT_SLIDER_MOVE, ["ControlId"=>Frame.ControlId, "Value"=>TextLib::ToText(Value), "AbsoluteX"=>TextLib::ToText(MouseX)]);
 		_Material_Slider_GetProgress[_Material_Slider_Active].Size.X = X;
 		_Material_Slider_Active.RelativePosition.X = X;
 		if (_Material_Slider_GetTooltip[_Material_Slider_GetFrame[_Material_Slider_Active]] != Null) {
@@ -192,6 +213,8 @@ if (_Material_Slider_Active != Null) {
 			_Material_Slider_TooltipAnimationStartValue[Tooltip] = 1.;
 		}
 		_Material_Slider_Active = Null;
+		Material_SendEvent(MATERIAL_EVENT_SLIDER_CHANGE, ["ControlId"=>Frame.ControlId, "Value"=>TextLib::ToText(Value)]);
+		Material_SendEvent(MATERIAL_EVENT_SLIDER_BLUR, ["ControlId"=>Frame.ControlId, "Value"=>TextLib::ToText(Value)]);
 	}
 }
 foreach (Tooltip in _Material_Slider_TooltipAnimationQueue) {
