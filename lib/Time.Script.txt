@@ -28,7 +28,7 @@ Void Time_SetTimezone(Text _TimezoneName) {
 Void Time_Init() {
 	if (!_Time_Init) {
 		Time_Months = [1=>"January", 2=>"February", 3=>"March", 04=>"April", 5=>"May", 6=>"June", 7=>"July", 8=>"August", 9=>"September", 10=>"October", 11=>"November", 12=>"December"];
-		Time_Days = [1=>"Monday", 2=>"Tuesday", 3=>"Wednesday", 04=>"Thursday", 5=>"Friday", 6=>"Saturday", 7=>"Sunday"];
+		Time_Days = [0=>"Sunday", 1=>"Monday", 2=>"Tuesday", 3=>"Wednesday", 04=>"Thursday", 5=>"Friday", 6=>"Saturday", 7=>"Sunday"];
 		Time_Timezones = ["acdt" => ["Australian Central Daylight Time", "Australia", "+1030"],
 						"acst" => ["Australian Central Standard Time", "Australia", "+930"],
 						"act" => ["Acre Time", "South America", "-500"],
