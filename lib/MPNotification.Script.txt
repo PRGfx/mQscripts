@@ -83,6 +83,7 @@ Void MPNotification_Show(Text _Instance) {
 			Icon.Style = "";
 			Icon.ImageUrl = Options["ImageUrl"];
 		} else {
+			Icon.ImageUrl = "";
 			if (Options.existskey("Style") && Options.existskey("SubStyle") && Options["Style"] != "" && Options["SubStyle"] != "") {
 				Icon.Style = Options["Style"];
 				Icon.Substyle = Options["SubStyle"];
