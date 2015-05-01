@@ -1,0 +1,172 @@
+#Include "MathLib" as MathLib
+
+#Const MPNOTIFICATION_EVENT_DISPLAYED "MPNOTIFICATION_EVENT_DISPLAYED"
+#Const MPNOTIFICATION_EVENT_DISPLAYING "MPNOTIFICATION_EVENT_DISPLAYING"
+#Const MPNOTIFICATION_EVENT_CLOSING "MPNOTIFICATION_EVENT_CLOSING"
+#Const MPNOTIFICATION_EVENT_CLOSED "MPNOTIFICATION_EVENT_CLOSED"
+#Const MPNOTIFICATION_EVENT_CLICK "MPNOTIFICATION_EVENT_CLICK"
+
+declare Text[] _MPNotification_Queue;
+declare Text[Text][Text] _MPNotification_Notifications;
+declare Integer[Text] _MPNotification_Durations;
+declare Boolean[Text] _MPNotification_HasEvents;
+declare Integer _MPNotification_Counter;
+declare Boolean _MPNotification_IsActive;
+declare Text _MPNotification_Active;
+declare Text[Text][] MPNotification_PendingEvents;
+declare CMlFrame _MPNotification_Container;
+declare Integer _MPNotification_AnimationState;
+declare Integer _MPNotification_AnimationStart;
+declare Integer _MPNotification_TTD;
+declare Integer _MPNotification_StatusBarAnimationStart;
+declare Integer _MPNotification_StatusBarAnimationState;
+declare CMlControl _MPNotification_StatusBar;
+Void _MPNotification_SendEvent(Text _Type, Text _Instance) {
+	MPNotification_PendingEvents.add(["Type"=>_Type, "Instance"=>_Instance, "Time"=>""^Now]);
+}
+Text MPNotification(Text[Text] _Options, Boolean _HasEvents, Integer _Duration) {
+	_MPNotification_Counter += 1;
+	declare Instance = "MPNotification_" ^ _MPNotification_Counter;
+	_MPNotification_Durations[Instance] = _Duration;
+	_MPNotification_HasEvents[Instance] = _HasEvents;
+	_MPNotification_Notifications[Instance] = _Options;
+	_MPNotification_Queue.add(Instance);
+	return Instance;
+}
+Text MPNotification(Text _Label, Text _SubLabel, Text _Style, Text _SubStyle, Boolean _HasEvents, Integer _Duration) {
+	declare Options = ["Label"=>_Label, "SubLabel"=>_SubLabel, "Style"=>_Style, "SubStyle"=>_SubStyle];
+	return MPNotification(Options, _HasEvents, _Duration);
+}
+Text MPNotification(Text _Label, Text _SubLabel, Text _ImageUrl, Boolean _HasEvents, Integer _Duration) {
+	declare Options = ["Label"=>_Label, "SubLabel"=>_SubLabel, "ImageUrl"=>_ImageUrl];
+	return MPNotification(Options, _HasEvents, _Duration);
+}
+Void _MPNotification_StatusBarShow() {
+	_MPNotification_StatusBar = Page.GetFirstChild("MPNotification_TitleBar");
+	if (_MPNotification_StatusBar != Null) {
+		if (_MPNotification_StatusBar.RelativePosition.Y != 90) {
+			_MPNotification_StatusBarAnimationStart = Now;
+			_MPNotification_StatusBarAnimationState = 1;
+		}
+	}
+}
+Void _MPNotification_StatusBarHide() {
+	if (_MPNotification_StatusBar != Null) {
+		_MPNotification_StatusBarAnimationStart = Now + 400;
+		_MPNotification_StatusBarAnimationState = 2;
+	}
+}
+Void MPNotification_Show(Text _Instance) {
+	if (!_MPNotification_IsActive) {
+		_MPNotification_Container = (Page.GetFirstChild("MPNotification_Container") as CMlFrame);
+		declare v = <-159., 84., 70.>;
+		_MPNotification_Container.RelativePosition -= _MPNotification_Container.AbsolutePosition;
+		_MPNotification_Container.RelativePosition = v;
+		_MPNotification_Container.RelativeScale = 0.;
+		_MPNotification_Container.Show();
+		declare Bg1 = (_MPNotification_Container.GetFirstChild("MPNotification_Background") as CMlQuad);
+		declare Bg2 = (_MPNotification_Container.GetFirstChild("MPNotification_BackgroundEvents") as CMlQuad);
+		if (_MPNotification_HasEvents[_Instance]) {
+			Bg1.Hide();
+			Bg2.Show();
+		} else {
+			Bg1.Show();
+			Bg2.Hide();
+		}
+		declare Options = _MPNotification_Notifications[_Instance];
+		declare Icon = (_MPNotification_Container.GetFirstChild("MPNotification_Icon") as CMlQuad);
+		declare Label = (_MPNotification_Container.GetFirstChild("MPNotification_Label") as CMlLabel);
+		declare SubLabel = (_MPNotification_Container.GetFirstChild("MPNotification_Category") as CMlLabel);
+		Label.Value = Options["Label"];
+		SubLabel.Value = Options["SubLabel"];
+		if (Options.existskey("ImageUrl")) {
+			Icon.Style = "";
+			Icon.ImageUrl = Options["ImageUrl"];
+		} else {
+			if (Options.existskey("Style") && Options.existskey("SubStyle") && Options["Style"] != "" && Options["SubStyle"] != "") {
+				Icon.Style = Options["Style"];
+				Icon.Substyle = Options["SubStyle"];
+			} else {
+				Icon.Style = "TitleLogos";
+				Icon.Substyle = "Icon";
+			}
+		}
+		_MPNotification_Active = _Instance;
+		_MPNotification_IsActive = True;
+		_MPNotification_SendEvent(MPNOTIFICATION_EVENT_DISPLAYING, _Instance);
+		_MPNotification_AnimationStart = Now;
+		_MPNotification_AnimationState = 1;
+		_MPNotification_StatusBarShow();
+	}
+}
+***GameLoop***
+***
+MPNotification_PendingEvents = Text[Text][];
+if (!_MPNotification_IsActive) {
+	if (_MPNotification_Queue.count > 0)
+		MPNotification_Show();
+}
+if (_MPNotification_AnimationState > 0) {
+	if (_MPNotification_AnimationState == 1) {
+		declare Step = (Now - _MPNotification_AnimationStart) / 150.;
+		_MPNotification_Container.RelativeScale = MathLib::Sin(.5 * Step * MathLib::PI());
+		if (_MPNotification_Container.RelativeScale >= 0.99) {
+			_MPNotification_AnimationState = 0;
+			_MPNotification_Container.RelativeScale = 1.;
+			if (_MPNotification_Durations[_MPNotification_Active] > 0)
+				_MPNotification_TTD = Now + _MPNotification_Durations[_MPNotification_Active];
+			_MPNotification_SendEvent(MPNOTIFICATION_EVENT_DISPLAYED, _MPNotification_Active);
+		}
+	}
+	else if (_MPNotification_AnimationState == 2) {
+		declare Step = (Now - _MPNotification_AnimationStart) / 180.;
+		_MPNotification_Container.RelativePosition.X = -159 - 80 * MathLib::Sin(.5 * Step * MathLib::PI());
+		if (_MPNotification_Container.RelativePosition.X <= -238) {
+			_MPNotification_AnimationState = 0;
+			_MPNotification_Container.RelativePosition.X = -239.;
+			_MPNotification_IsActive = False;
+			_MPNotification_TTD = 0;
+			_MPNotification_SendEvent(MPNOTIFICATION_EVENT_CLOSED, _MPNotification_Active);
+			if (_MPNotification_Queue.count == 0) _MPNotification_StatusBarHide();
+		}
+	}
+} else {
+	if (_MPNotification_TTD > 0 && Now >= _MPNotification_TTD) {
+		MPNotification_Hide();
+	}
+}
+if (_MPNotification_StatusBarAnimationState > 0) {
+	if (_MPNotification_StatusBarAnimationState == 1) {
+		declare Step = (Now - _MPNotification_StatusBarAnimationStart) / 80.;
+		_MPNotification_StatusBar.RelativePosition.Y = 96 - 6 * MathLib::Sin(.5 * Step * MathLib::PI());
+		if (_MPNotification_StatusBar.RelativePosition.Y <= 90.2) {
+			_MPNotification_StatusBarAnimationState = 0;
+			_MPNotification_StatusBar.RelativePosition.Y = 90.;
+		}
+	}
+	else if (_MPNotification_StatusBarAnimationState == 2 && _MPNotification_StatusBarAnimationStart <= Now) {
+		declare Step = (Now - _MPNotification_StatusBarAnimationStart) / 150.;
+		_MPNotification_StatusBar.RelativePosition.Y = 90 + 6 * MathLib::Sin(.5 * Step * MathLib::PI());
+		if (_MPNotification_StatusBar.RelativePosition.Y >= 95.8) {
+			_MPNotification_StatusBarAnimationState = 0;
+			_MPNotification_StatusBar.RelativePosition.Y = 96.;
+		}
+	}
+}
+foreach (Event in PendingEvents) {
+	if (Event.Type == CMlEvent::Type::MouseClick && Event.ControlId == "MPNotification_Close") MPNotification_Hide();
+	if (Event.Type == CMlEvent::Type::MouseClick && Event.ControlId == "MPNotification_BackgroundEvents") _MPNotification_SendEvent(MPNOTIFICATION_EVENT_CLICK, _MPNotification_Active);
+}
+***
+Void MPNotification_Show() {
+	if (_MPNotification_Queue.count > 0) {
+		MPNotification_Show(_MPNotification_Queue[0]);
+		_MPNotification_Queue.removekey(0);
+	}
+}
+Void MPNotification_Hide() {
+	_MPNotification_Container = (Page.GetFirstChild("MPNotification_Container") as CMlFrame);
+	_MPNotification_AnimationState = 2;
+	_MPNotification_AnimationStart = Now;
+	_MPNotification_SendEvent(MPNOTIFICATION_EVENT_CLOSING, _MPNotification_Active);
+}
