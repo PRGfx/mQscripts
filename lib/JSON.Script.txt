@@ -524,7 +524,12 @@ Text _JSON_Get(Text _Instance, Integer _Offset, Text[] _Types) {
  * @param Integer 	_Offset   An offset in that array.
  */
 Text JSON_GetText(Text _Instance, Integer _Offset) {
-	return _JSON_Get(_Instance, _Offset, [JSON_TYPE_STRING, JSON_TYPE_NUMBER]);
+	declare Value = _JSON_Get(_Instance, _Offset, [JSON_TYPE_STRING, JSON_TYPE_NUMBER]);
+	if (Value != "") {
+		Value = TextLib::Replace("\\\\", "\\", Value);
+		Value = TextLib::Replace("\\/", "/", Value);
+	}
+	return Value;
 }
 /**
  * Returns a handle of a JSON Object from a JSON Array.
