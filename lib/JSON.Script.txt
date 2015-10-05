@@ -56,19 +56,23 @@ Boolean _JSON_IsDigit(Text char) {
 declare Text _JSON_ParseValue;
 Integer _JSON_Parse_String(Text _Input) {
 	_JSON_Init();
-	declare strlen = TextLib::Length(_Input);
 	declare i = 0;
+	declare esc = -1;
 	declare value = "";
-	declare escaped = -1;
-	while (i < strlen) {
+	while (i < TextLib::Length(_Input)) {
 		declare char = TextLib::SubText(_Input, i, 1);
-		if (char == "\\") escaped = i;
-		if (char == "\"" && escaped+1 < i) break;
-		value ^= char;
+		if (char == "\\" && esc < 0) esc = i;
+		else if (char == "\"") {
+			if (esc < 0) break;
+			else value = TextLib::SubText(value, 0, esc);
+		}
+		if (esc == i - 1) esc = -1;
+		if (esc < 0 || char != "\\")
+			value ^= char;
 		i+=1;
 	}
 	_JSON_ParseValue = value;
-	return i;
+	return i + 1;
 }
 Integer _JSON_Parse_Number(Text _Input) {
 	_JSON_Init();
@@ -172,12 +176,13 @@ Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
 	declare Text[Text] valueTypes;
 	declare added = False;
 	declare Integer i = 0;
-	while (i < strlen) {
+	declare Finished = False;
+	while (i < strlen && !Finished) {
 		declare char = TextLib::SubText(_Input, i, 1);
 		switch (state) {
 			case JSON_STATE_BASE: {
 				if (char == "\"") {
-					i += _JSON_Parse_String(TextLib::SubText(_Input, i+1, strlen)) + 1;
+					i += _JSON_Parse_String(TextLib::SubText(_Input, i+1, strlen));
 					currentKey = _JSON_ParseValue;
 					state = JSON_STATE_KEY_END;
 				}
@@ -190,7 +195,7 @@ Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
 			}
 			case JSON_STATE_VALUE: {
 				if (char == "\"") {
-					i += _JSON_Parse_String(TextLib::SubText(_Input, i+1, strlen)) + 1;
+					i += _JSON_Parse_String(TextLib::SubText(_Input, i+1, strlen));
 					currentValue = _JSON_ParseValue;
 					state = JSON_STATE_VALUE_END;
 					_JSON_ValueTypes[ident][currentKey] = JSON_TYPE_STRING;
@@ -226,13 +231,16 @@ Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
 				if (char == ",") state = JSON_STATE_BASE;
 				if (!_JSON_Keys[ident].exists(currentKey))
 					_JSON_Keys[ident].add(currentKey);
-				if (char == "}") break;
+				if (char == "}") {
+					Finished = True;
+					i -= 1;
+				}
 			}
 			case JSON_STATE_ARRAY_BASE: {
 				added = False;
-				if (char == "]") break;
+				if (char == "]") Finished = True;
 				else if (char == "\"") {
-					i += _JSON_Parse_String(TextLib::SubText(_Input, i+1, strlen)) + 1;
+					i += _JSON_Parse_String(TextLib::SubText(_Input, i+1, strlen));
 					currentValue = _JSON_ParseValue;
 					state = JSON_STATE_ARRAY_EXP;
 					currentType = JSON_TYPE_STRING;
@@ -524,12 +532,7 @@ Text _JSON_Get(Text _Instance, Integer _Offset, Text[] _Types) {
  * @param Integer 	_Offset   An offset in that array.
  */
 Text JSON_GetText(Text _Instance, Integer _Offset) {
-	declare Value = _JSON_Get(_Instance, _Offset, [JSON_TYPE_STRING, JSON_TYPE_NUMBER]);
-	if (Value != "") {
-		Value = TextLib::Replace("\\\\", "\\", Value);
-		Value = TextLib::Replace("\\/", "/", Value);
-	}
-	return Value;
+	return _JSON_Get(_Instance, _Offset, [JSON_TYPE_STRING, JSON_TYPE_NUMBER]);
 }
 /**
  * Returns a handle of a JSON Object from a JSON Array.
