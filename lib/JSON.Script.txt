@@ -211,7 +211,7 @@ Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
 					_JSON_ValueTypes[ident][currentKey] = JSON_TYPE_OBJECT;
 				} else if (char == "[") {
 					currentValue = _JSON_Parse_Object(TextLib::SubText(_Input, i+1, strlen), False, True);
-					i += _JSON_Length[currentValue] + 1;
+					i += _JSON_Length[currentValue];
 					_JSON_ValueTypes[ident][currentKey] = JSON_TYPE_ARRAY;
 					state = JSON_STATE_VALUE_END;
 				} else {
@@ -228,7 +228,14 @@ Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
 			}
 			case JSON_STATE_VALUE_END: {
 				_JSON_Values[ident][currentKey] = currentValue;
-				if (char == ",") state = JSON_STATE_BASE;
+				if (char == ",") {
+					if (_IsArray) {
+						state = JSON_STATE_ARRAY_BASE;
+						log("awaiting next array value");
+					} else {
+						state = JSON_STATE_BASE;						
+					}
+				}
 				if (!_JSON_Keys[ident].exists(currentKey))
 					_JSON_Keys[ident].add(currentKey);
 				if (char == "}") {
@@ -256,7 +263,7 @@ Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
 					currentType = JSON_TYPE_OBJECT;
 				} else if (char == "[") {
 					currentValue = _JSON_Parse_Object(TextLib::SubText(_Input, i+1, strlen), False, True);
-					i += _JSON_Length[currentValue] - 1;
+					i += _JSON_Length[currentValue];
 					state = JSON_STATE_ARRAY_EXP;
 					currentType = JSON_TYPE_ARRAY;
 				} else {
@@ -279,7 +286,10 @@ Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
 					arraySize += 1;
 				}
 				if (char == ",") state = JSON_STATE_ARRAY_BASE;
-				if (char == "]") break;
+				if (char == "]") {
+					i += 1;
+					break;
+				}
 			}
 		}
 		if (state == JSON_STATE_END) break;
