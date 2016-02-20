@@ -258,7 +258,7 @@ Text _JSON_Parse_Object(Text _Input, Boolean _Complete, Boolean _IsArray) {
 					currentType = JSON_TYPE_NUMBER;
 				} else if (char == "{") {
 					currentValue = _JSON_Parse_Object(TextLib::SubText(_Input, i+1, strlen), False, False);
-					i += _JSON_Length[currentValue] - 1;
+					i += _JSON_Length[currentValue];
 					state = JSON_STATE_ARRAY_EXP;
 					currentType = JSON_TYPE_OBJECT;
 				} else if (char == "[") {
