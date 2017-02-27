@@ -1,10 +1,31 @@
+#Include "TextLib" as TL
+
+Text _JSON_Es(Text _V) {
+	if (TL::Length(_V) < 1) return _V;
+	declare T = TL::Replace(TL::Replace(_V, "\"", "&&q;;"), "\\", "\\\\");
+	if (TL::Length(T) > 4) return TL::Replace(T, "&&q;;", "\\\"");
+	return T;
+}
+
+Text _JSON_Ec(Text[Text] _V) {
+	if (_V.count == 0) return "";
+	declare Text Result = "{";
+	declare Index = 0;
+	foreach (Name => Value in _V) {
+		Result ^= "\""^Name^"\":"^Value;
+		if (Index < _V.count - 1) Result ^= ",";
+		Index += 1;
+	}
+	return Result ^ "}";
+}
+
 Text JSON_Stringify(Boolean _V) {
 	if (_V) return "true";
 	return "false";
 }
 
 Text JSON_Stringify(Ident _V) {
-	return ""^_V;
+	return "\""^_V^"\"";
 }
 
 Text JSON_Stringify(Int3 _V) {
@@ -29,6 +50,275 @@ Text JSON_Stringify(Vec2 _V) {
 
 Text JSON_Stringify(Vec3 _V) {
 	return """[{{{_V.X}}}0,{{{_V.Y}}}0,{{{_V.Z}}}0]""";
+}
+
+Text JSON_Stringify(CMlBrowser::EBuddyAction _V) {
+	switch(_V) {
+		case CMlBrowser::EBuddyAction::Add: return "\"Add\"";
+		case CMlBrowser::EBuddyAction::Invite: return "\"Invite\"";
+		case CMlBrowser::EBuddyAction::Remove: return "\"Remove\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMlBrowser::EBuddyResult _V) {
+	switch(_V) {
+		case CMlBrowser::EBuddyResult::Ok: return "\"Ok\"";
+		case CMlBrowser::EBuddyResult::Error: return "\"Error\"";
+		case CMlBrowser::EBuddyResult::NotFinished: return "\"NotFinished\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CItemAnchor::CardinalDirections _V) {
+	switch(_V) {
+		case CItemAnchor::CardinalDirections::North: return "\"North\"";
+		case CItemAnchor::CardinalDirections::East: return "\"East\"";
+		case CItemAnchor::CardinalDirections::South: return "\"South\"";
+		case CItemAnchor::CardinalDirections::West: return "\"West\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CBlockUnitModel::CardinalDirEnum _V) {
+	switch(_V) {
+		case CBlockUnitModel::CardinalDirEnum::North: return "\"North\"";
+		case CBlockUnitModel::CardinalDirEnum::East: return "\"East\"";
+		case CBlockUnitModel::CardinalDirEnum::South: return "\"South\"";
+		case CBlockUnitModel::CardinalDirEnum::West: return "\"West\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CBlockUnitModel::MultiDirEnum _V) {
+	switch(_V) {
+		case CBlockUnitModel::MultiDirEnum::SameDir: return "\"SameDir\"";
+		case CBlockUnitModel::MultiDirEnum::SymmetricalDirs: return "\"SymmetricalDirs\"";
+		case CBlockUnitModel::MultiDirEnum::AllDir: return "\"AllDir\"";
+		case CBlockUnitModel::MultiDirEnum::OpposedDirOnly: return "\"OpposedDirOnly\"";
+		case CBlockUnitModel::MultiDirEnum::PerpendicularDirsOnly: return "\"PerpendicularDirsOnly\"";
+		case CBlockUnitModel::MultiDirEnum::NextDirOnly: return "\"NextDirOnly\"";
+		case CBlockUnitModel::MultiDirEnum::PreviousDirOnly: return "\"PreviousDirOnly\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CSmMode::EWeapon _V) {
+	switch(_V) {
+		case CSmMode::EWeapon::Laser: return "\"Laser\"";
+		case CSmMode::EWeapon::Rocket: return "\"Rocket\"";
+		case CSmMode::EWeapon::Nucleus: return "\"Nucleus\"";
+		case CSmMode::EWeapon::Arrow: return "\"Arrow\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CSmMode::EActionSlot _V) {
+	switch(_V) {
+		case CSmMode::EActionSlot::Slot_A: return "\"Slot_A\"";
+		case CSmMode::EActionSlot::Slot_B: return "\"Slot_B\"";
+		case CSmMode::EActionSlot::Slot_C: return "\"Slot_C\"";
+		case CSmMode::EActionSlot::Slot_D: return "\"Slot_D\"";
+		case CSmMode::EActionSlot::Slot_E: return "\"Slot_E\"";
+		case CSmMode::EActionSlot::Slot_F: return "\"Slot_F\"";
+		case CSmMode::EActionSlot::Slot_G: return "\"Slot_G\"";
+		case CSmMode::EActionSlot::Slot_H: return "\"Slot_H\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CSmMode::EActionInput _V) {
+	switch(_V) {
+		case CSmMode::EActionInput::Weapon: return "\"Weapon\"";
+		case CSmMode::EActionInput::Movement: return "\"Movement\"";
+		case CSmMode::EActionInput::Activable1: return "\"Activable1\"";
+		case CSmMode::EActionInput::Activable2: return "\"Activable2\"";
+		case CSmMode::EActionInput::Activable3: return "\"Activable3\"";
+		case CSmMode::EActionInput::Activable4: return "\"Activable4\"";
+		case CSmMode::EActionInput::Consumable1: return "\"Consumable1\"";
+		case CSmMode::EActionInput::Consumable2: return "\"Consumable2\"";
+		case CSmMode::EActionInput::None: return "\"None\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CSmMode::EGameplay _V) {
+	switch(_V) {
+		case CSmMode::EGameplay::Default: return "\"Default\"";
+		case CSmMode::EGameplay::Mp3Beta0: return "\"Mp3Beta0\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMlControl::AlignHorizontal _V) {
+	switch(_V) {
+		case CMlControl::AlignHorizontal::Left: return "\"Left\"";
+		case CMlControl::AlignHorizontal::HCenter: return "\"HCenter\"";
+		case CMlControl::AlignHorizontal::Right: return "\"Right\"";
+		case CMlControl::AlignHorizontal::None: return "\"None\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMlControl::AlignVertical _V) {
+	switch(_V) {
+		case CMlControl::AlignVertical::Top: return "\"Top\"";
+		case CMlControl::AlignVertical::VCenter: return "\"VCenter\"";
+		case CMlControl::AlignVertical::Bottom: return "\"Bottom\"";
+		case CMlControl::AlignVertical::None: return "\"None\"";
+		case CMlControl::AlignVertical::VCenter2: return "\"VCenter2\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CTmMlPlayer::ERaceState _V) {
+	switch(_V) {
+		case CTmMlPlayer::ERaceState::BeforeStart: return "\"BeforeStart\"";
+		case CTmMlPlayer::ERaceState::Running: return "\"Running\"";
+		case CTmMlPlayer::ERaceState::Finished: return "\"Finished\"";
+		case CTmMlPlayer::ERaceState::Eliminated: return "\"Eliminated\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CSmPlayerDriver::ESmDriverBehaviour _V) {
+	switch(_V) {
+		case CSmPlayerDriver::ESmDriverBehaviour::Static: return "\"Static\"";
+		case CSmPlayerDriver::ESmDriverBehaviour::Turret: return "\"Turret\"";
+		case CSmPlayerDriver::ESmDriverBehaviour::Scripted: return "\"Scripted\"";
+		case CSmPlayerDriver::ESmDriverBehaviour::IA: return "\"IA\"";
+		case CSmPlayerDriver::ESmDriverBehaviour::Patrol: return "\"Patrol\"";
+		case CSmPlayerDriver::ESmDriverBehaviour::Escape: return "\"Escape\"";
+		case CSmPlayerDriver::ESmDriverBehaviour::Saunter: return "\"Saunter\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CSmPlayerDriver::ESmDriverPatrolMode _V) {
+	switch(_V) {
+		case CSmPlayerDriver::ESmDriverPatrolMode::OneTrip: return "\"OneTrip\"";
+		case CSmPlayerDriver::ESmDriverPatrolMode::BackAndForth: return "\"BackAndForth\"";
+		case CSmPlayerDriver::ESmDriverPatrolMode::Loop: return "\"Loop\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CSmPlayerDriver::ESmAttackFilter _V) {
+	switch(_V) {
+		case CSmPlayerDriver::ESmAttackFilter::All: return "\"All\"";
+		case CSmPlayerDriver::ESmAttackFilter::AllPlayers: return "\"AllPlayers\"";
+		case CSmPlayerDriver::ESmAttackFilter::AllBots: return "\"AllBots\"";
+		case CSmPlayerDriver::ESmAttackFilter::AllOpposite: return "\"AllOpposite\"";
+		case CSmPlayerDriver::ESmAttackFilter::OppositePlayers: return "\"OppositePlayers\"";
+		case CSmPlayerDriver::ESmAttackFilter::OppositeBots: return "\"OppositeBots\"";
+		case CSmPlayerDriver::ESmAttackFilter::Nobody: return "\"Nobody\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CSmPlayer::ESpawnStatus _V) {
+	switch(_V) {
+		case CSmPlayer::ESpawnStatus::NotSpawned: return "\"NotSpawned\"";
+		case CSmPlayer::ESpawnStatus::Spawning: return "\"Spawning\"";
+		case CSmPlayer::ESpawnStatus::Spawned: return "\"Spawned\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMlEvent::Type _V) {
+	switch(_V) {
+		case CMlEvent::Type::KeyPress: return "\"KeyPress\"";
+		case CMlEvent::Type::MouseClick: return "\"MouseClick\"";
+		case CMlEvent::Type::MouseOver: return "\"MouseOver\"";
+		case CMlEvent::Type::MouseOut: return "\"MouseOut\"";
+		case CMlEvent::Type::EntrySubmit: return "\"EntrySubmit\"";
+		case CMlEvent::Type::MenuNavigation: return "\"MenuNavigation\"";
+		case CMlEvent::Type::PluginCustomEvent: return "\"PluginCustomEvent\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMlEvent::EMenuNavAction _V) {
+	switch(_V) {
+		case CMlEvent::EMenuNavAction::Up: return "\"Up\"";
+		case CMlEvent::EMenuNavAction::Right: return "\"Right\"";
+		case CMlEvent::EMenuNavAction::Left: return "\"Left\"";
+		case CMlEvent::EMenuNavAction::Down: return "\"Down\"";
+		case CMlEvent::EMenuNavAction::Select: return "\"Select\"";
+		case CMlEvent::EMenuNavAction::Cancel: return "\"Cancel\"";
+		case CMlEvent::EMenuNavAction::PageUp: return "\"PageUp\"";
+		case CMlEvent::EMenuNavAction::PageDown: return "\"PageDown\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMlScriptIngame::EUISound _V) {
+	switch(_V) {
+		case CMlScriptIngame::EUISound::Default: return "\"Default\"";
+		case CMlScriptIngame::EUISound::Silence: return "\"Silence\"";
+		case CMlScriptIngame::EUISound::StartMatch: return "\"StartMatch\"";
+		case CMlScriptIngame::EUISound::EndMatch: return "\"EndMatch\"";
+		case CMlScriptIngame::EUISound::StartRound: return "\"StartRound\"";
+		case CMlScriptIngame::EUISound::EndRound: return "\"EndRound\"";
+		case CMlScriptIngame::EUISound::PhaseChange: return "\"PhaseChange\"";
+		case CMlScriptIngame::EUISound::TieBreakPoint: return "\"TieBreakPoint\"";
+		case CMlScriptIngame::EUISound::TiePoint: return "\"TiePoint\"";
+		case CMlScriptIngame::EUISound::VictoryPoint: return "\"VictoryPoint\"";
+		case CMlScriptIngame::EUISound::Capture: return "\"Capture\"";
+		case CMlScriptIngame::EUISound::TimeOut: return "\"TimeOut\"";
+		case CMlScriptIngame::EUISound::Notice: return "\"Notice\"";
+		case CMlScriptIngame::EUISound::Warning: return "\"Warning\"";
+		case CMlScriptIngame::EUISound::PlayerEliminated: return "\"PlayerEliminated\"";
+		case CMlScriptIngame::EUISound::PlayerHit: return "\"PlayerHit\"";
+		case CMlScriptIngame::EUISound::Checkpoint: return "\"Checkpoint\"";
+		case CMlScriptIngame::EUISound::Finish: return "\"Finish\"";
+		case CMlScriptIngame::EUISound::Record: return "\"Record\"";
+		case CMlScriptIngame::EUISound::ScoreProgress: return "\"ScoreProgress\"";
+		case CMlScriptIngame::EUISound::RankChange: return "\"RankChange\"";
+		case CMlScriptIngame::EUISound::Bonus: return "\"Bonus\"";
+		case CMlScriptIngame::EUISound::FirstHit: return "\"FirstHit\"";
+		case CMlScriptIngame::EUISound::Combo: return "\"Combo\"";
+		case CMlScriptIngame::EUISound::PlayersRemaining: return "\"PlayersRemaining\"";
+		case CMlScriptIngame::EUISound::Custom1: return "\"Custom1\"";
+		case CMlScriptIngame::EUISound::Custom2: return "\"Custom2\"";
+		case CMlScriptIngame::EUISound::Custom3: return "\"Custom3\"";
+		case CMlScriptIngame::EUISound::Custom4: return "\"Custom4\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMlScriptIngame::EInGameMenuResult _V) {
+	switch(_V) {
+		case CMlScriptIngame::EInGameMenuResult::Resume: return "\"Resume\"";
+		case CMlScriptIngame::EInGameMenuResult::Quit: return "\"Quit\"";
+		case CMlScriptIngame::EInGameMenuResult::NormalMenu: return "\"NormalMenu\"";
+		case CMlScriptIngame::EInGameMenuResult::AdvancedMenu: return "\"AdvancedMenu\"";
+		case CMlScriptIngame::EInGameMenuResult::ServerSettings: return "\"ServerSettings\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CBlockModelClip::EnumClipType _V) {
+	switch(_V) {
+		case CBlockModelClip::EnumClipType::ClassicClip: return "\"ClassicClip\"";
+		case CBlockModelClip::EnumClipType::FreeClipSide: return "\"FreeClipSide\"";
+		case CBlockModelClip::EnumClipType::FreeClipTop: return "\"FreeClipTop\"";
+		case CBlockModelClip::EnumClipType::FreeClipBottom: return "\"FreeClipBottom\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CBlockModelClip::MultiDirEnum _V) {
+	switch(_V) {
+		case CBlockModelClip::MultiDirEnum::SameDir: return "\"SameDir\"";
+		case CBlockModelClip::MultiDirEnum::SymmetricalDirs: return "\"SymmetricalDirs\"";
+		case CBlockModelClip::MultiDirEnum::AllDir: return "\"AllDir\"";
+		case CBlockModelClip::MultiDirEnum::OpposedDirOnly: return "\"OpposedDirOnly\"";
+		case CBlockModelClip::MultiDirEnum::PerpendicularDirsOnly: return "\"PerpendicularDirsOnly\"";
+		case CBlockModelClip::MultiDirEnum::NextDirOnly: return "\"NextDirOnly\"";
+		case CBlockModelClip::MultiDirEnum::PreviousDirOnly: return "\"PreviousDirOnly\"";
+	}
+	return "";
 }
 
 Text JSON_Stringify(CTmModeEvent::EType _V) {
@@ -90,136 +380,11 @@ Text JSON_Stringify(CTmModeEvent::EStuntFigure _V) {
 	return "";
 }
 
-Text JSON_Stringify(CMlControl::AlignHorizontal _V) {
+Text JSON_Stringify(CXmlRpcEvent::EType _V) {
 	switch(_V) {
-		case CMlControl::AlignHorizontal::Left: return "\"Left\"";
-		case CMlControl::AlignHorizontal::HCenter: return "\"HCenter\"";
-		case CMlControl::AlignHorizontal::Right: return "\"Right\"";
-		case CMlControl::AlignHorizontal::None: return "\"None\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMlControl::AlignVertical _V) {
-	switch(_V) {
-		case CMlControl::AlignVertical::Top: return "\"Top\"";
-		case CMlControl::AlignVertical::VCenter: return "\"VCenter\"";
-		case CMlControl::AlignVertical::Bottom: return "\"Bottom\"";
-		case CMlControl::AlignVertical::None: return "\"None\"";
-		case CMlControl::AlignVertical::VCenter2: return "\"VCenter2\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CEditorPluginEvent::Type _V) {
-	switch(_V) {
-		case CEditorPluginEvent::Type::LayerCustomEvent: return "\"LayerCustomEvent\"";
-		case CEditorPluginEvent::Type::KeyPress: return "\"KeyPress\"";
-		case CEditorPluginEvent::Type::MenuNavigation: return "\"MenuNavigation\"";
-		case CEditorPluginEvent::Type::CursorSelectionBegin: return "\"CursorSelectionBegin\"";
-		case CEditorPluginEvent::Type::CursorSelectionEnd: return "\"CursorSelectionEnd\"";
-		case CEditorPluginEvent::Type::CursorChange: return "\"CursorChange\"";
-		case CEditorPluginEvent::Type::MapModified: return "\"MapModified\"";
-		case CEditorPluginEvent::Type::EditorInput: return "\"EditorInput\"";
-		case CEditorPluginEvent::Type::EditAnchor: return "\"EditAnchor\"";
-		case CEditorPluginEvent::Type::EditObjectives: return "\"EditObjectives\"";
-		case CEditorPluginEvent::Type::StartValidation: return "\"StartValidation\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CEditorPluginEvent::EInput _V) {
-	switch(_V) {
-		case CEditorPluginEvent::EInput::Unknown: return "\"Unknown\"";
-		case CEditorPluginEvent::EInput::Menu: return "\"Menu\"";
-		case CEditorPluginEvent::EInput::SwitchToRace: return "\"SwitchToRace\"";
-		case CEditorPluginEvent::EInput::CursorUp: return "\"CursorUp\"";
-		case CEditorPluginEvent::EInput::CursorRight: return "\"CursorRight\"";
-		case CEditorPluginEvent::EInput::CursorDown: return "\"CursorDown\"";
-		case CEditorPluginEvent::EInput::CursorLeft: return "\"CursorLeft\"";
-		case CEditorPluginEvent::EInput::CursorRaise: return "\"CursorRaise\"";
-		case CEditorPluginEvent::EInput::CursorLower: return "\"CursorLower\"";
-		case CEditorPluginEvent::EInput::CursorTurn: return "\"CursorTurn\"";
-		case CEditorPluginEvent::EInput::CursorPick: return "\"CursorPick\"";
-		case CEditorPluginEvent::EInput::CursorPlace: return "\"CursorPlace\"";
-		case CEditorPluginEvent::EInput::CursorDelete: return "\"CursorDelete\"";
-		case CEditorPluginEvent::EInput::CameraUp: return "\"CameraUp\"";
-		case CEditorPluginEvent::EInput::CameraRight: return "\"CameraRight\"";
-		case CEditorPluginEvent::EInput::CameraDown: return "\"CameraDown\"";
-		case CEditorPluginEvent::EInput::CameraLeft: return "\"CameraLeft\"";
-		case CEditorPluginEvent::EInput::IconUp: return "\"IconUp\"";
-		case CEditorPluginEvent::EInput::IconRight: return "\"IconRight\"";
-		case CEditorPluginEvent::EInput::IconDown: return "\"IconDown\"";
-		case CEditorPluginEvent::EInput::IconLeft: return "\"IconLeft\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMlScriptIngame::EUISound _V) {
-	switch(_V) {
-		case CMlScriptIngame::EUISound::Default: return "\"Default\"";
-		case CMlScriptIngame::EUISound::Silence: return "\"Silence\"";
-		case CMlScriptIngame::EUISound::StartMatch: return "\"StartMatch\"";
-		case CMlScriptIngame::EUISound::EndMatch: return "\"EndMatch\"";
-		case CMlScriptIngame::EUISound::StartRound: return "\"StartRound\"";
-		case CMlScriptIngame::EUISound::EndRound: return "\"EndRound\"";
-		case CMlScriptIngame::EUISound::PhaseChange: return "\"PhaseChange\"";
-		case CMlScriptIngame::EUISound::TieBreakPoint: return "\"TieBreakPoint\"";
-		case CMlScriptIngame::EUISound::TiePoint: return "\"TiePoint\"";
-		case CMlScriptIngame::EUISound::VictoryPoint: return "\"VictoryPoint\"";
-		case CMlScriptIngame::EUISound::Capture: return "\"Capture\"";
-		case CMlScriptIngame::EUISound::TimeOut: return "\"TimeOut\"";
-		case CMlScriptIngame::EUISound::Notice: return "\"Notice\"";
-		case CMlScriptIngame::EUISound::Warning: return "\"Warning\"";
-		case CMlScriptIngame::EUISound::PlayerEliminated: return "\"PlayerEliminated\"";
-		case CMlScriptIngame::EUISound::PlayerHit: return "\"PlayerHit\"";
-		case CMlScriptIngame::EUISound::Checkpoint: return "\"Checkpoint\"";
-		case CMlScriptIngame::EUISound::Finish: return "\"Finish\"";
-		case CMlScriptIngame::EUISound::Record: return "\"Record\"";
-		case CMlScriptIngame::EUISound::ScoreProgress: return "\"ScoreProgress\"";
-		case CMlScriptIngame::EUISound::RankChange: return "\"RankChange\"";
-		case CMlScriptIngame::EUISound::Bonus: return "\"Bonus\"";
-		case CMlScriptIngame::EUISound::FirstHit: return "\"FirstHit\"";
-		case CMlScriptIngame::EUISound::Combo: return "\"Combo\"";
-		case CMlScriptIngame::EUISound::PlayersRemaining: return "\"PlayersRemaining\"";
-		case CMlScriptIngame::EUISound::Custom1: return "\"Custom1\"";
-		case CMlScriptIngame::EUISound::Custom2: return "\"Custom2\"";
-		case CMlScriptIngame::EUISound::Custom3: return "\"Custom3\"";
-		case CMlScriptIngame::EUISound::Custom4: return "\"Custom4\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMlScriptIngame::EInGameMenuResult _V) {
-	switch(_V) {
-		case CMlScriptIngame::EInGameMenuResult::Resume: return "\"Resume\"";
-		case CMlScriptIngame::EInGameMenuResult::Quit: return "\"Quit\"";
-		case CMlScriptIngame::EInGameMenuResult::NormalMenu: return "\"NormalMenu\"";
-		case CMlScriptIngame::EInGameMenuResult::AdvancedMenu: return "\"AdvancedMenu\"";
-		case CMlScriptIngame::EInGameMenuResult::ServerSettings: return "\"ServerSettings\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMlFrame::EControlType _V) {
-	switch(_V) {
-		case CMlFrame::EControlType::Audio: return "\"Audio\"";
-		case CMlFrame::EControlType::Entry: return "\"Entry\"";
-		case CMlFrame::EControlType::FileEntry: return "\"FileEntry\"";
-		case CMlFrame::EControlType::Frame: return "\"Frame\"";
-		case CMlFrame::EControlType::Label: return "\"Label\"";
-		case CMlFrame::EControlType::Quad: return "\"Quad\"";
-		case CMlFrame::EControlType::Video: return "\"Video\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CItemAnchor::CardinalDirections _V) {
-	switch(_V) {
-		case CItemAnchor::CardinalDirections::North: return "\"North\"";
-		case CItemAnchor::CardinalDirections::East: return "\"East\"";
-		case CItemAnchor::CardinalDirections::South: return "\"South\"";
-		case CItemAnchor::CardinalDirections::West: return "\"West\"";
+		case CXmlRpcEvent::EType::Unknown: return "\"Unknown\"";
+		case CXmlRpcEvent::EType::Callback: return "\"Callback\"";
+		case CXmlRpcEvent::EType::CallbackArray: return "\"CallbackArray\"";
 	}
 	return "";
 }
@@ -236,22 +401,87 @@ Text JSON_Stringify(CMlScript::LinkType _V) {
 	return "";
 }
 
-Text JSON_Stringify(CMode::EMedal _V) {
+Text JSON_Stringify(CManiaAppEvent::EType _V) {
 	switch(_V) {
-		case CMode::EMedal::None: return "\"None\"";
-		case CMode::EMedal::Finished: return "\"Finished\"";
-		case CMode::EMedal::Bronze: return "\"Bronze\"";
-		case CMode::EMedal::Silver: return "\"Silver\"";
-		case CMode::EMedal::Gold: return "\"Gold\"";
-		case CMode::EMedal::Author: return "\"Author\"";
+		case CManiaAppEvent::EType::LayerCustomEvent: return "\"LayerCustomEvent\"";
+		case CManiaAppEvent::EType::KeyPress: return "\"KeyPress\"";
+		case CManiaAppEvent::EType::ExternalCustomEvent: return "\"ExternalCustomEvent\"";
+		case CManiaAppEvent::EType::MenuNavigation: return "\"MenuNavigation\"";
 	}
 	return "";
 }
 
-Text JSON_Stringify(CManiaApp::ELinkType _V) {
+Text JSON_Stringify(CManiaAppEvent::EMenuNavAction _V) {
 	switch(_V) {
-		case CManiaApp::ELinkType::ExternalBrowser: return "\"ExternalBrowser\"";
-		case CManiaApp::ELinkType::ManialinkBrowser: return "\"ManialinkBrowser\"";
+		case CManiaAppEvent::EMenuNavAction::Up: return "\"Up\"";
+		case CManiaAppEvent::EMenuNavAction::Right: return "\"Right\"";
+		case CManiaAppEvent::EMenuNavAction::Left: return "\"Left\"";
+		case CManiaAppEvent::EMenuNavAction::Down: return "\"Down\"";
+		case CManiaAppEvent::EMenuNavAction::Select: return "\"Select\"";
+		case CManiaAppEvent::EMenuNavAction::Cancel: return "\"Cancel\"";
+		case CManiaAppEvent::EMenuNavAction::PageUp: return "\"PageUp\"";
+		case CManiaAppEvent::EMenuNavAction::PageDown: return "\"PageDown\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMapType::ValidationStatus _V) {
+	switch(_V) {
+		case CMapType::ValidationStatus::NotValidable: return "\"NotValidable\"";
+		case CMapType::ValidationStatus::Validable: return "\"Validable\"";
+		case CMapType::ValidationStatus::Validated: return "\"Validated\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CTmResult::ETmRaceResultCriteria _V) {
+	switch(_V) {
+		case CTmResult::ETmRaceResultCriteria::Time: return "\"Time\"";
+		case CTmResult::ETmRaceResultCriteria::Stunts: return "\"Stunts\"";
+		case CTmResult::ETmRaceResultCriteria::NbRespawns: return "\"NbRespawns\"";
+		case CTmResult::ETmRaceResultCriteria::CheckpointsProgress: return "\"CheckpointsProgress\"";
+		case CTmResult::ETmRaceResultCriteria::None: return "\"None\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CBlock::CardinalDirections _V) {
+	switch(_V) {
+		case CBlock::CardinalDirections::North: return "\"North\"";
+		case CBlock::CardinalDirections::East: return "\"East\"";
+		case CBlock::CardinalDirections::South: return "\"South\"";
+		case CBlock::CardinalDirections::West: return "\"West\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CBlockModel::EBaseType _V) {
+	switch(_V) {
+		case CBlockModel::EBaseType::None: return "\"None\"";
+		case CBlockModel::EBaseType::Conductor: return "\"Conductor\"";
+		case CBlockModel::EBaseType::Generator: return "\"Generator\"";
+		case CBlockModel::EBaseType::Collector: return "\"Collector\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CBlockModel::EWayPointType _V) {
+	switch(_V) {
+		case CBlockModel::EWayPointType::Start: return "\"Start\"";
+		case CBlockModel::EWayPointType::Finish: return "\"Finish\"";
+		case CBlockModel::EWayPointType::Checkpoint: return "\"Checkpoint\"";
+		case CBlockModel::EWayPointType::None: return "\"None\"";
+		case CBlockModel::EWayPointType::StartFinish: return "\"StartFinish\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CBlockModel::EProdState _V) {
+	switch(_V) {
+		case CBlockModel::EProdState::Obsolete: return "\"Obsolete\"";
+		case CBlockModel::EProdState::GameBox: return "\"GameBox\"";
+		case CBlockModel::EProdState::DevBuild: return "\"DevBuild\"";
+		case CBlockModel::EProdState::Release: return "\"Release\"";
 	}
 	return "";
 }
@@ -273,119 +503,11 @@ Text JSON_Stringify(CUILayer::EUILayerType _V) {
 	return "";
 }
 
-Text JSON_Stringify(CBlockModelClip::EnumClipType _V) {
+Text JSON_Stringify(CMlQuad::EKeepRatioMode _V) {
 	switch(_V) {
-		case CBlockModelClip::EnumClipType::ClassicClip: return "\"ClassicClip\"";
-		case CBlockModelClip::EnumClipType::FreeClipSide: return "\"FreeClipSide\"";
-		case CBlockModelClip::EnumClipType::FreeClipTop: return "\"FreeClipTop\"";
-		case CBlockModelClip::EnumClipType::FreeClipBottom: return "\"FreeClipBottom\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CBlockModelClip::MultiDirEnum _V) {
-	switch(_V) {
-		case CBlockModelClip::MultiDirEnum::SameDir: return "\"SameDir\"";
-		case CBlockModelClip::MultiDirEnum::SymmetricalDirs: return "\"SymmetricalDirs\"";
-		case CBlockModelClip::MultiDirEnum::AllDir: return "\"AllDir\"";
-		case CBlockModelClip::MultiDirEnum::OpposedDirOnly: return "\"OpposedDirOnly\"";
-		case CBlockModelClip::MultiDirEnum::PerpendicularDirsOnly: return "\"PerpendicularDirsOnly\"";
-		case CBlockModelClip::MultiDirEnum::NextDirOnly: return "\"NextDirOnly\"";
-		case CBlockModelClip::MultiDirEnum::PreviousDirOnly: return "\"PreviousDirOnly\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CTmMode::ETmScoreSortOrder _V) {
-	switch(_V) {
-		case CTmMode::ETmScoreSortOrder::TotalPoints: return "\"TotalPoints\"";
-		case CTmMode::ETmScoreSortOrder::BestRace_Time: return "\"BestRace_Time\"";
-		case CTmMode::ETmScoreSortOrder::BestRace_Stunts: return "\"BestRace_Stunts\"";
-		case CTmMode::ETmScoreSortOrder::BestRace_NbRespawns: return "\"BestRace_NbRespawns\"";
-		case CTmMode::ETmScoreSortOrder::BestRace_CheckpointsProgress: return "\"BestRace_CheckpointsProgress\"";
-		case CTmMode::ETmScoreSortOrder::PrevRace_Time: return "\"PrevRace_Time\"";
-		case CTmMode::ETmScoreSortOrder::Name: return "\"Name\"";
-		case CTmMode::ETmScoreSortOrder::LadderRankSortValue: return "\"LadderRankSortValue\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CTmMode::ETMRespawnBehaviour _V) {
-	switch(_V) {
-		case CTmMode::ETMRespawnBehaviour::Normal: return "\"Normal\"";
-		case CTmMode::ETMRespawnBehaviour::DoNothing: return "\"DoNothing\"";
-		case CTmMode::ETMRespawnBehaviour::GiveUpBeforeFirstCheckPoint: return "\"GiveUpBeforeFirstCheckPoint\"";
-		case CTmMode::ETMRespawnBehaviour::AlwaysGiveUp: return "\"AlwaysGiveUp\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CTmMode::ETmRaceChronoBehaviour _V) {
-	switch(_V) {
-		case CTmMode::ETmRaceChronoBehaviour::Auto: return "\"Auto\"";
-		case CTmMode::ETmRaceChronoBehaviour::Hidden: return "\"Hidden\"";
-		case CTmMode::ETmRaceChronoBehaviour::CountDown: return "\"CountDown\"";
-		case CTmMode::ETmRaceChronoBehaviour::Normal: return "\"Normal\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CTmMode::EPersonalGhost _V) {
-	switch(_V) {
-		case CTmMode::EPersonalGhost::Disabled: return "\"Disabled\"";
-		case CTmMode::EPersonalGhost::Latest: return "\"Latest\"";
-		case CTmMode::EPersonalGhost::FastestRace: return "\"FastestRace\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CSmPlayer::ESpawnStatus _V) {
-	switch(_V) {
-		case CSmPlayer::ESpawnStatus::NotSpawned: return "\"NotSpawned\"";
-		case CSmPlayer::ESpawnStatus::Spawning: return "\"Spawning\"";
-		case CSmPlayer::ESpawnStatus::Spawned: return "\"Spawned\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CEditorPlugin::CardinalDirections _V) {
-	switch(_V) {
-		case CEditorPlugin::CardinalDirections::North: return "\"North\"";
-		case CEditorPlugin::CardinalDirections::East: return "\"East\"";
-		case CEditorPlugin::CardinalDirections::South: return "\"South\"";
-		case CEditorPlugin::CardinalDirections::West: return "\"West\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CEditorPlugin::PlaceMode _V) {
-	switch(_V) {
-		case CEditorPlugin::PlaceMode::Unknown: return "\"Unknown\"";
-		case CEditorPlugin::PlaceMode::Terraform: return "\"Terraform\"";
-		case CEditorPlugin::PlaceMode::Block: return "\"Block\"";
-		case CEditorPlugin::PlaceMode::Macroblock: return "\"Macroblock\"";
-		case CEditorPlugin::PlaceMode::Skin: return "\"Skin\"";
-		case CEditorPlugin::PlaceMode::CopyPaste: return "\"CopyPaste\"";
-		case CEditorPlugin::PlaceMode::Test: return "\"Test\"";
-		case CEditorPlugin::PlaceMode::Plugin: return "\"Plugin\"";
-		case CEditorPlugin::PlaceMode::CustomSelection: return "\"CustomSelection\"";
-		case CEditorPlugin::PlaceMode::OffZone: return "\"OffZone\"";
-		case CEditorPlugin::PlaceMode::BlockProperty: return "\"BlockProperty\"";
-		case CEditorPlugin::PlaceMode::Path: return "\"Path\"";
-		case CEditorPlugin::PlaceMode::GhostBlock: return "\"GhostBlock\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CEditorPlugin::EditMode _V) {
-	switch(_V) {
-		case CEditorPlugin::EditMode::Unknown: return "\"Unknown\"";
-		case CEditorPlugin::EditMode::Place: return "\"Place\"";
-		case CEditorPlugin::EditMode::FreeLook: return "\"FreeLook\"";
-		case CEditorPlugin::EditMode::Erase: return "\"Erase\"";
-		case CEditorPlugin::EditMode::Pick: return "\"Pick\"";
-		case CEditorPlugin::EditMode::SelectionAdd: return "\"SelectionAdd\"";
-		case CEditorPlugin::EditMode::SelectionRemove: return "\"SelectionRemove\"";
+		case CMlQuad::EKeepRatioMode::Inactive: return "\"Inactive\"";
+		case CMlQuad::EKeepRatioMode::Clip: return "\"Clip\"";
+		case CMlQuad::EKeepRatioMode::Fit: return "\"Fit\"";
 	}
 	return "";
 }
@@ -508,12 +630,54 @@ Text JSON_Stringify(CUIConfig::EObserverMode _V) {
 	return "";
 }
 
-Text JSON_Stringify(CSmActionEvent::EType _V) {
+Text JSON_Stringify(CEditorPlugin::CardinalDirections _V) {
 	switch(_V) {
-		case CSmActionEvent::EType::OnHitPlayer: return "\"OnHitPlayer\"";
-		case CSmActionEvent::EType::OnProjectileStart: return "\"OnProjectileStart\"";
-		case CSmActionEvent::EType::OnProjectileEnd: return "\"OnProjectileEnd\"";
-		case CSmActionEvent::EType::OnActiveChange: return "\"OnActiveChange\"";
+		case CEditorPlugin::CardinalDirections::North: return "\"North\"";
+		case CEditorPlugin::CardinalDirections::East: return "\"East\"";
+		case CEditorPlugin::CardinalDirections::South: return "\"South\"";
+		case CEditorPlugin::CardinalDirections::West: return "\"West\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CEditorPlugin::PlaceMode _V) {
+	switch(_V) {
+		case CEditorPlugin::PlaceMode::Unknown: return "\"Unknown\"";
+		case CEditorPlugin::PlaceMode::Terraform: return "\"Terraform\"";
+		case CEditorPlugin::PlaceMode::Block: return "\"Block\"";
+		case CEditorPlugin::PlaceMode::Macroblock: return "\"Macroblock\"";
+		case CEditorPlugin::PlaceMode::Skin: return "\"Skin\"";
+		case CEditorPlugin::PlaceMode::CopyPaste: return "\"CopyPaste\"";
+		case CEditorPlugin::PlaceMode::Test: return "\"Test\"";
+		case CEditorPlugin::PlaceMode::Plugin: return "\"Plugin\"";
+		case CEditorPlugin::PlaceMode::CustomSelection: return "\"CustomSelection\"";
+		case CEditorPlugin::PlaceMode::OffZone: return "\"OffZone\"";
+		case CEditorPlugin::PlaceMode::BlockProperty: return "\"BlockProperty\"";
+		case CEditorPlugin::PlaceMode::Path: return "\"Path\"";
+		case CEditorPlugin::PlaceMode::GhostBlock: return "\"GhostBlock\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CEditorPlugin::EditMode _V) {
+	switch(_V) {
+		case CEditorPlugin::EditMode::Unknown: return "\"Unknown\"";
+		case CEditorPlugin::EditMode::Place: return "\"Place\"";
+		case CEditorPlugin::EditMode::FreeLook: return "\"FreeLook\"";
+		case CEditorPlugin::EditMode::Erase: return "\"Erase\"";
+		case CEditorPlugin::EditMode::Pick: return "\"Pick\"";
+		case CEditorPlugin::EditMode::SelectionAdd: return "\"SelectionAdd\"";
+		case CEditorPlugin::EditMode::SelectionRemove: return "\"SelectionRemove\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CBlockModelVariantGround::EnumAutoTerrainPlaceType _V) {
+	switch(_V) {
+		case CBlockModelVariantGround::EnumAutoTerrainPlaceType::Auto: return "\"Auto\"";
+		case CBlockModelVariantGround::EnumAutoTerrainPlaceType::Force: return "\"Force\"";
+		case CBlockModelVariantGround::EnumAutoTerrainPlaceType::DoNotPlace: return "\"DoNotPlace\"";
+		case CBlockModelVariantGround::EnumAutoTerrainPlaceType::DoNotDestroy: return "\"DoNotDestroy\"";
 	}
 	return "";
 }
@@ -532,162 +696,6 @@ Text JSON_Stringify(CAudioManager::ELibSound _V) {
 		case CAudioManager::ELibSound::Victory: return "\"Victory\"";
 		case CAudioManager::ELibSound::ScoreIncrease: return "\"ScoreIncrease\"";
 		case CAudioManager::ELibSound::Checkpoint: return "\"Checkpoint\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CBlockModel::EBaseType _V) {
-	switch(_V) {
-		case CBlockModel::EBaseType::None: return "\"None\"";
-		case CBlockModel::EBaseType::Conductor: return "\"Conductor\"";
-		case CBlockModel::EBaseType::Generator: return "\"Generator\"";
-		case CBlockModel::EBaseType::Collector: return "\"Collector\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CBlockModel::EWayPointType _V) {
-	switch(_V) {
-		case CBlockModel::EWayPointType::Start: return "\"Start\"";
-		case CBlockModel::EWayPointType::Finish: return "\"Finish\"";
-		case CBlockModel::EWayPointType::Checkpoint: return "\"Checkpoint\"";
-		case CBlockModel::EWayPointType::None: return "\"None\"";
-		case CBlockModel::EWayPointType::StartFinish: return "\"StartFinish\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CBlockModel::EProdState _V) {
-	switch(_V) {
-		case CBlockModel::EProdState::Obsolete: return "\"Obsolete\"";
-		case CBlockModel::EProdState::GameBox: return "\"GameBox\"";
-		case CBlockModel::EProdState::DevBuild: return "\"DevBuild\"";
-		case CBlockModel::EProdState::Release: return "\"Release\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMlQuad::EKeepRatioMode _V) {
-	switch(_V) {
-		case CMlQuad::EKeepRatioMode::Inactive: return "\"Inactive\"";
-		case CMlQuad::EKeepRatioMode::Clip: return "\"Clip\"";
-		case CMlQuad::EKeepRatioMode::Fit: return "\"Fit\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CTmMlPlayer::ERaceState _V) {
-	switch(_V) {
-		case CTmMlPlayer::ERaceState::BeforeStart: return "\"BeforeStart\"";
-		case CTmMlPlayer::ERaceState::Running: return "\"Running\"";
-		case CTmMlPlayer::ERaceState::Finished: return "\"Finished\"";
-		case CTmMlPlayer::ERaceState::Eliminated: return "\"Eliminated\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMlEvent::Type _V) {
-	switch(_V) {
-		case CMlEvent::Type::KeyPress: return "\"KeyPress\"";
-		case CMlEvent::Type::MouseClick: return "\"MouseClick\"";
-		case CMlEvent::Type::MouseOver: return "\"MouseOver\"";
-		case CMlEvent::Type::MouseOut: return "\"MouseOut\"";
-		case CMlEvent::Type::EntrySubmit: return "\"EntrySubmit\"";
-		case CMlEvent::Type::MenuNavigation: return "\"MenuNavigation\"";
-		case CMlEvent::Type::PluginCustomEvent: return "\"PluginCustomEvent\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMlEvent::EMenuNavAction _V) {
-	switch(_V) {
-		case CMlEvent::EMenuNavAction::Up: return "\"Up\"";
-		case CMlEvent::EMenuNavAction::Right: return "\"Right\"";
-		case CMlEvent::EMenuNavAction::Left: return "\"Left\"";
-		case CMlEvent::EMenuNavAction::Down: return "\"Down\"";
-		case CMlEvent::EMenuNavAction::Select: return "\"Select\"";
-		case CMlEvent::EMenuNavAction::Cancel: return "\"Cancel\"";
-		case CMlEvent::EMenuNavAction::PageUp: return "\"PageUp\"";
-		case CMlEvent::EMenuNavAction::PageDown: return "\"PageDown\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CBlockModelVariantGround::EnumAutoTerrainPlaceType _V) {
-	switch(_V) {
-		case CBlockModelVariantGround::EnumAutoTerrainPlaceType::Auto: return "\"Auto\"";
-		case CBlockModelVariantGround::EnumAutoTerrainPlaceType::Force: return "\"Force\"";
-		case CBlockModelVariantGround::EnumAutoTerrainPlaceType::DoNotPlace: return "\"DoNotPlace\"";
-		case CBlockModelVariantGround::EnumAutoTerrainPlaceType::DoNotDestroy: return "\"DoNotDestroy\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CXmlRpcEvent::EType _V) {
-	switch(_V) {
-		case CXmlRpcEvent::EType::Unknown: return "\"Unknown\"";
-		case CXmlRpcEvent::EType::Callback: return "\"Callback\"";
-		case CXmlRpcEvent::EType::CallbackArray: return "\"CallbackArray\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMlBrowser::EBuddyAction _V) {
-	switch(_V) {
-		case CMlBrowser::EBuddyAction::Add: return "\"Add\"";
-		case CMlBrowser::EBuddyAction::Invite: return "\"Invite\"";
-		case CMlBrowser::EBuddyAction::Remove: return "\"Remove\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMlBrowser::EBuddyResult _V) {
-	switch(_V) {
-		case CMlBrowser::EBuddyResult::Ok: return "\"Ok\"";
-		case CMlBrowser::EBuddyResult::Error: return "\"Error\"";
-		case CMlBrowser::EBuddyResult::NotFinished: return "\"NotFinished\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CBlockUnitModel::CardinalDirEnum _V) {
-	switch(_V) {
-		case CBlockUnitModel::CardinalDirEnum::North: return "\"North\"";
-		case CBlockUnitModel::CardinalDirEnum::East: return "\"East\"";
-		case CBlockUnitModel::CardinalDirEnum::South: return "\"South\"";
-		case CBlockUnitModel::CardinalDirEnum::West: return "\"West\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CBlockUnitModel::MultiDirEnum _V) {
-	switch(_V) {
-		case CBlockUnitModel::MultiDirEnum::SameDir: return "\"SameDir\"";
-		case CBlockUnitModel::MultiDirEnum::SymmetricalDirs: return "\"SymmetricalDirs\"";
-		case CBlockUnitModel::MultiDirEnum::AllDir: return "\"AllDir\"";
-		case CBlockUnitModel::MultiDirEnum::OpposedDirOnly: return "\"OpposedDirOnly\"";
-		case CBlockUnitModel::MultiDirEnum::PerpendicularDirsOnly: return "\"PerpendicularDirsOnly\"";
-		case CBlockUnitModel::MultiDirEnum::NextDirOnly: return "\"NextDirOnly\"";
-		case CBlockUnitModel::MultiDirEnum::PreviousDirOnly: return "\"PreviousDirOnly\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CMapType::ValidationStatus _V) {
-	switch(_V) {
-		case CMapType::ValidationStatus::NotValidable: return "\"NotValidable\"";
-		case CMapType::ValidationStatus::Validable: return "\"Validable\"";
-		case CMapType::ValidationStatus::Validated: return "\"Validated\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CSmObject::EStatus _V) {
-	switch(_V) {
-		case CSmObject::EStatus::OnPlayer: return "\"OnPlayer\"";
-		case CSmObject::EStatus::OnAnchor: return "\"OnAnchor\"";
-		case CSmObject::EStatus::InWorld: return "\"InWorld\"";
-		case CSmObject::EStatus::Unspawned: return "\"Unspawned\"";
 	}
 	return "";
 }
@@ -745,105 +753,142 @@ Text JSON_Stringify(CUser::SpectatorMode _V) {
 	return "";
 }
 
-Text JSON_Stringify(CBlock::CardinalDirections _V) {
+Text JSON_Stringify(CEditorPluginEvent::Type _V) {
 	switch(_V) {
-		case CBlock::CardinalDirections::North: return "\"North\"";
-		case CBlock::CardinalDirections::East: return "\"East\"";
-		case CBlock::CardinalDirections::South: return "\"South\"";
-		case CBlock::CardinalDirections::West: return "\"West\"";
+		case CEditorPluginEvent::Type::LayerCustomEvent: return "\"LayerCustomEvent\"";
+		case CEditorPluginEvent::Type::KeyPress: return "\"KeyPress\"";
+		case CEditorPluginEvent::Type::MenuNavigation: return "\"MenuNavigation\"";
+		case CEditorPluginEvent::Type::CursorSelectionBegin: return "\"CursorSelectionBegin\"";
+		case CEditorPluginEvent::Type::CursorSelectionEnd: return "\"CursorSelectionEnd\"";
+		case CEditorPluginEvent::Type::CursorChange: return "\"CursorChange\"";
+		case CEditorPluginEvent::Type::MapModified: return "\"MapModified\"";
+		case CEditorPluginEvent::Type::EditorInput: return "\"EditorInput\"";
+		case CEditorPluginEvent::Type::EditAnchor: return "\"EditAnchor\"";
+		case CEditorPluginEvent::Type::EditObjectives: return "\"EditObjectives\"";
+		case CEditorPluginEvent::Type::StartValidation: return "\"StartValidation\"";
 	}
 	return "";
 }
 
-Text JSON_Stringify(CSmMode::EWeapon _V) {
+Text JSON_Stringify(CEditorPluginEvent::EInput _V) {
 	switch(_V) {
-		case CSmMode::EWeapon::Laser: return "\"Laser\"";
-		case CSmMode::EWeapon::Rocket: return "\"Rocket\"";
-		case CSmMode::EWeapon::Nucleus: return "\"Nucleus\"";
-		case CSmMode::EWeapon::Arrow: return "\"Arrow\"";
+		case CEditorPluginEvent::EInput::Unknown: return "\"Unknown\"";
+		case CEditorPluginEvent::EInput::Menu: return "\"Menu\"";
+		case CEditorPluginEvent::EInput::SwitchToRace: return "\"SwitchToRace\"";
+		case CEditorPluginEvent::EInput::CursorUp: return "\"CursorUp\"";
+		case CEditorPluginEvent::EInput::CursorRight: return "\"CursorRight\"";
+		case CEditorPluginEvent::EInput::CursorDown: return "\"CursorDown\"";
+		case CEditorPluginEvent::EInput::CursorLeft: return "\"CursorLeft\"";
+		case CEditorPluginEvent::EInput::CursorRaise: return "\"CursorRaise\"";
+		case CEditorPluginEvent::EInput::CursorLower: return "\"CursorLower\"";
+		case CEditorPluginEvent::EInput::CursorTurn: return "\"CursorTurn\"";
+		case CEditorPluginEvent::EInput::CursorPick: return "\"CursorPick\"";
+		case CEditorPluginEvent::EInput::CursorPlace: return "\"CursorPlace\"";
+		case CEditorPluginEvent::EInput::CursorDelete: return "\"CursorDelete\"";
+		case CEditorPluginEvent::EInput::CameraUp: return "\"CameraUp\"";
+		case CEditorPluginEvent::EInput::CameraRight: return "\"CameraRight\"";
+		case CEditorPluginEvent::EInput::CameraDown: return "\"CameraDown\"";
+		case CEditorPluginEvent::EInput::CameraLeft: return "\"CameraLeft\"";
+		case CEditorPluginEvent::EInput::IconUp: return "\"IconUp\"";
+		case CEditorPluginEvent::EInput::IconRight: return "\"IconRight\"";
+		case CEditorPluginEvent::EInput::IconDown: return "\"IconDown\"";
+		case CEditorPluginEvent::EInput::IconLeft: return "\"IconLeft\"";
 	}
 	return "";
 }
 
-Text JSON_Stringify(CSmMode::EActionSlot _V) {
+Text JSON_Stringify(CManiaApp::ELinkType _V) {
 	switch(_V) {
-		case CSmMode::EActionSlot::Slot_A: return "\"Slot_A\"";
-		case CSmMode::EActionSlot::Slot_B: return "\"Slot_B\"";
-		case CSmMode::EActionSlot::Slot_C: return "\"Slot_C\"";
-		case CSmMode::EActionSlot::Slot_D: return "\"Slot_D\"";
-		case CSmMode::EActionSlot::Slot_E: return "\"Slot_E\"";
-		case CSmMode::EActionSlot::Slot_F: return "\"Slot_F\"";
-		case CSmMode::EActionSlot::Slot_G: return "\"Slot_G\"";
-		case CSmMode::EActionSlot::Slot_H: return "\"Slot_H\"";
+		case CManiaApp::ELinkType::ExternalBrowser: return "\"ExternalBrowser\"";
+		case CManiaApp::ELinkType::ManialinkBrowser: return "\"ManialinkBrowser\"";
 	}
 	return "";
 }
 
-Text JSON_Stringify(CSmMode::EActionInput _V) {
+Text JSON_Stringify(CTmMode::ETmScoreSortOrder _V) {
 	switch(_V) {
-		case CSmMode::EActionInput::Weapon: return "\"Weapon\"";
-		case CSmMode::EActionInput::Movement: return "\"Movement\"";
-		case CSmMode::EActionInput::Activable1: return "\"Activable1\"";
-		case CSmMode::EActionInput::Activable2: return "\"Activable2\"";
-		case CSmMode::EActionInput::Activable3: return "\"Activable3\"";
-		case CSmMode::EActionInput::Activable4: return "\"Activable4\"";
-		case CSmMode::EActionInput::Consumable1: return "\"Consumable1\"";
-		case CSmMode::EActionInput::Consumable2: return "\"Consumable2\"";
-		case CSmMode::EActionInput::None: return "\"None\"";
+		case CTmMode::ETmScoreSortOrder::TotalPoints: return "\"TotalPoints\"";
+		case CTmMode::ETmScoreSortOrder::BestRace_Time: return "\"BestRace_Time\"";
+		case CTmMode::ETmScoreSortOrder::BestRace_Stunts: return "\"BestRace_Stunts\"";
+		case CTmMode::ETmScoreSortOrder::BestRace_NbRespawns: return "\"BestRace_NbRespawns\"";
+		case CTmMode::ETmScoreSortOrder::BestRace_CheckpointsProgress: return "\"BestRace_CheckpointsProgress\"";
+		case CTmMode::ETmScoreSortOrder::PrevRace_Time: return "\"PrevRace_Time\"";
+		case CTmMode::ETmScoreSortOrder::Name: return "\"Name\"";
+		case CTmMode::ETmScoreSortOrder::LadderRankSortValue: return "\"LadderRankSortValue\"";
 	}
 	return "";
 }
 
-Text JSON_Stringify(CSmMode::EGameplay _V) {
+Text JSON_Stringify(CTmMode::ETMRespawnBehaviour _V) {
 	switch(_V) {
-		case CSmMode::EGameplay::Default: return "\"Default\"";
-		case CSmMode::EGameplay::Mp3Beta0: return "\"Mp3Beta0\"";
+		case CTmMode::ETMRespawnBehaviour::Normal: return "\"Normal\"";
+		case CTmMode::ETMRespawnBehaviour::DoNothing: return "\"DoNothing\"";
+		case CTmMode::ETMRespawnBehaviour::GiveUpBeforeFirstCheckPoint: return "\"GiveUpBeforeFirstCheckPoint\"";
+		case CTmMode::ETMRespawnBehaviour::AlwaysGiveUp: return "\"AlwaysGiveUp\"";
 	}
 	return "";
 }
 
-Text JSON_Stringify(CTmResult::ETmRaceResultCriteria _V) {
+Text JSON_Stringify(CTmMode::ETmRaceChronoBehaviour _V) {
 	switch(_V) {
-		case CTmResult::ETmRaceResultCriteria::Time: return "\"Time\"";
-		case CTmResult::ETmRaceResultCriteria::Stunts: return "\"Stunts\"";
-		case CTmResult::ETmRaceResultCriteria::NbRespawns: return "\"NbRespawns\"";
-		case CTmResult::ETmRaceResultCriteria::CheckpointsProgress: return "\"CheckpointsProgress\"";
-		case CTmResult::ETmRaceResultCriteria::None: return "\"None\"";
+		case CTmMode::ETmRaceChronoBehaviour::Auto: return "\"Auto\"";
+		case CTmMode::ETmRaceChronoBehaviour::Hidden: return "\"Hidden\"";
+		case CTmMode::ETmRaceChronoBehaviour::CountDown: return "\"CountDown\"";
+		case CTmMode::ETmRaceChronoBehaviour::Normal: return "\"Normal\"";
 	}
 	return "";
 }
 
-Text JSON_Stringify(CSmPlayerDriver::ESmDriverBehaviour _V) {
+Text JSON_Stringify(CTmMode::EPersonalGhost _V) {
 	switch(_V) {
-		case CSmPlayerDriver::ESmDriverBehaviour::Static: return "\"Static\"";
-		case CSmPlayerDriver::ESmDriverBehaviour::Turret: return "\"Turret\"";
-		case CSmPlayerDriver::ESmDriverBehaviour::Scripted: return "\"Scripted\"";
-		case CSmPlayerDriver::ESmDriverBehaviour::IA: return "\"IA\"";
-		case CSmPlayerDriver::ESmDriverBehaviour::Patrol: return "\"Patrol\"";
-		case CSmPlayerDriver::ESmDriverBehaviour::Escape: return "\"Escape\"";
-		case CSmPlayerDriver::ESmDriverBehaviour::Saunter: return "\"Saunter\"";
+		case CTmMode::EPersonalGhost::Disabled: return "\"Disabled\"";
+		case CTmMode::EPersonalGhost::Latest: return "\"Latest\"";
+		case CTmMode::EPersonalGhost::FastestRace: return "\"FastestRace\"";
 	}
 	return "";
 }
 
-Text JSON_Stringify(CSmPlayerDriver::ESmDriverPatrolMode _V) {
+Text JSON_Stringify(CSmObject::EStatus _V) {
 	switch(_V) {
-		case CSmPlayerDriver::ESmDriverPatrolMode::OneTrip: return "\"OneTrip\"";
-		case CSmPlayerDriver::ESmDriverPatrolMode::BackAndForth: return "\"BackAndForth\"";
-		case CSmPlayerDriver::ESmDriverPatrolMode::Loop: return "\"Loop\"";
+		case CSmObject::EStatus::OnPlayer: return "\"OnPlayer\"";
+		case CSmObject::EStatus::OnAnchor: return "\"OnAnchor\"";
+		case CSmObject::EStatus::InWorld: return "\"InWorld\"";
+		case CSmObject::EStatus::Unspawned: return "\"Unspawned\"";
 	}
 	return "";
 }
 
-Text JSON_Stringify(CSmPlayerDriver::ESmAttackFilter _V) {
+Text JSON_Stringify(CSmActionEvent::EType _V) {
 	switch(_V) {
-		case CSmPlayerDriver::ESmAttackFilter::All: return "\"All\"";
-		case CSmPlayerDriver::ESmAttackFilter::AllPlayers: return "\"AllPlayers\"";
-		case CSmPlayerDriver::ESmAttackFilter::AllBots: return "\"AllBots\"";
-		case CSmPlayerDriver::ESmAttackFilter::AllOpposite: return "\"AllOpposite\"";
-		case CSmPlayerDriver::ESmAttackFilter::OppositePlayers: return "\"OppositePlayers\"";
-		case CSmPlayerDriver::ESmAttackFilter::OppositeBots: return "\"OppositeBots\"";
-		case CSmPlayerDriver::ESmAttackFilter::Nobody: return "\"Nobody\"";
+		case CSmActionEvent::EType::OnHitPlayer: return "\"OnHitPlayer\"";
+		case CSmActionEvent::EType::OnProjectileStart: return "\"OnProjectileStart\"";
+		case CSmActionEvent::EType::OnProjectileEnd: return "\"OnProjectileEnd\"";
+		case CSmActionEvent::EType::OnActiveChange: return "\"OnActiveChange\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMode::EMedal _V) {
+	switch(_V) {
+		case CMode::EMedal::None: return "\"None\"";
+		case CMode::EMedal::Finished: return "\"Finished\"";
+		case CMode::EMedal::Bronze: return "\"Bronze\"";
+		case CMode::EMedal::Silver: return "\"Silver\"";
+		case CMode::EMedal::Gold: return "\"Gold\"";
+		case CMode::EMedal::Author: return "\"Author\"";
+	}
+	return "";
+}
+
+Text JSON_Stringify(CMlFrame::EControlType _V) {
+	switch(_V) {
+		case CMlFrame::EControlType::Audio: return "\"Audio\"";
+		case CMlFrame::EControlType::Entry: return "\"Entry\"";
+		case CMlFrame::EControlType::FileEntry: return "\"FileEntry\"";
+		case CMlFrame::EControlType::Frame: return "\"Frame\"";
+		case CMlFrame::EControlType::Label: return "\"Label\"";
+		case CMlFrame::EControlType::Quad: return "\"Quad\"";
+		case CMlFrame::EControlType::Video: return "\"Video\"";
 	}
 	return "";
 }
@@ -914,286 +959,12 @@ Text JSON_Stringify(CSmModeEvent::EActionSlots _V) {
 	return "";
 }
 
-Text JSON_Stringify(CManiaAppEvent::EType _V) {
-	switch(_V) {
-		case CManiaAppEvent::EType::LayerCustomEvent: return "\"LayerCustomEvent\"";
-		case CManiaAppEvent::EType::KeyPress: return "\"KeyPress\"";
-		case CManiaAppEvent::EType::ExternalCustomEvent: return "\"ExternalCustomEvent\"";
-		case CManiaAppEvent::EType::MenuNavigation: return "\"MenuNavigation\"";
-	}
-	return "";
-}
-
-Text JSON_Stringify(CManiaAppEvent::EMenuNavAction _V) {
-	switch(_V) {
-		case CManiaAppEvent::EMenuNavAction::Up: return "\"Up\"";
-		case CManiaAppEvent::EMenuNavAction::Right: return "\"Right\"";
-		case CManiaAppEvent::EMenuNavAction::Left: return "\"Left\"";
-		case CManiaAppEvent::EMenuNavAction::Down: return "\"Down\"";
-		case CManiaAppEvent::EMenuNavAction::Select: return "\"Select\"";
-		case CManiaAppEvent::EMenuNavAction::Cancel: return "\"Cancel\"";
-		case CManiaAppEvent::EMenuNavAction::PageUp: return "\"PageUp\"";
-		case CManiaAppEvent::EMenuNavAction::PageDown: return "\"PageDown\"";
-	}
-	return "";
-}
-
 Text JSON_Stringify(CNod _V) {
 	if (_V == Null) return "null";
 	declare Text[Text] Fields;
-	if (_V is CStation) {
-		declare C <=> (_V as CStation);
-		Fields["Title"] = JSON_Stringify(C.Title);
-		Fields["AudienceRegisteredUsers"] = JSON_Stringify(C.AudienceRegisteredUsers);
-		Fields["CampaignMedalsMax"] = JSON_Stringify(C.CampaignMedalsMax);
-		Fields["CampaignMedalsCurrent"] = JSON_Stringify(C.CampaignMedalsCurrent);
-		Fields["CampaignMedalsRanking"] = JSON_Stringify(C.CampaignMedalsRanking);
-		Fields["LadderPoints"] = JSON_Stringify(C.LadderPoints);
-		Fields["LadderRank"] = JSON_Stringify(C.LadderRank);
-	}
-	if (_V is CSmSector) {
-		declare C <=> (_V as CSmSector);
-		declare Part = "[";
-		for(I, 0, C.PlayersIds.count-1) {
-			Part ^= JSON_Stringify(C.PlayersIds[I]);
-			if (I < C.PlayersIds.count-1) Part ^= ",";
-		}
-		Fields["PlayersIds"] = Part ^ "]";
-	}
-	if (_V is CMlPage) {
-		declare C <=> (_V as CMlPage);
-		Fields["MainFrame"] = JSON_Stringify(C.MainFrame);
-		Fields["LinksInhibited"] = JSON_Stringify(C.LinksInhibited);
-		declare Part = "[";
-		for(I, 0, C.GetClassChildren_Result.count-1) {
-			Part ^= JSON_Stringify(C.GetClassChildren_Result[I]);
-			if (I < C.GetClassChildren_Result.count-1) Part ^= ",";
-		}
-		Fields["GetClassChildren_Result"] = Part ^ "]";
-	}
-	if (_V is CSmMapSector) {
-		declare C <=> (_V as CSmMapSector);
-		declare Part = "[";
-		for(I, 0, C.PlayersIds.count-1) {
-			Part ^= JSON_Stringify(C.PlayersIds[I]);
-			if (I < C.PlayersIds.count-1) Part ^= ",";
-		}
-		Fields["PlayersIds"] = Part ^ "]";
-	}
-	if (_V is CTmModeEvent) {
-		declare C <=> (_V as CTmModeEvent);
-		Fields["Type"] = JSON_Stringify(C.Type);
-		Fields["Player"] = JSON_Stringify(C.Player);
-		Fields["RaceTime"] = JSON_Stringify(C.RaceTime);
-		Fields["CheckpointInRace"] = JSON_Stringify(C.CheckpointInRace);
-		Fields["CheckpointInLap"] = JSON_Stringify(C.CheckpointInLap);
-		Fields["IsEndLap"] = JSON_Stringify(C.IsEndLap);
-		Fields["IsEndRace"] = JSON_Stringify(C.IsEndRace);
-		Fields["LapTime"] = JSON_Stringify(C.LapTime);
-		Fields["StuntsScore"] = JSON_Stringify(C.StuntsScore);
-		Fields["NbRespawns"] = JSON_Stringify(C.NbRespawns);
-		Fields["BlockId"] = JSON_Stringify(C.BlockId);
-		Fields["Speed"] = JSON_Stringify(C.Speed);
-		Fields["Distance"] = JSON_Stringify(C.Distance);
-		Fields["Damages"] = JSON_Stringify(C.Damages);
-		Fields["StuntFigure"] = JSON_Stringify(C.StuntFigure);
-		Fields["Angle"] = JSON_Stringify(C.Angle);
-		Fields["Points"] = JSON_Stringify(C.Points);
-		Fields["Combo"] = JSON_Stringify(C.Combo);
-		Fields["IsStraight"] = JSON_Stringify(C.IsStraight);
-		Fields["IsReverse"] = JSON_Stringify(C.IsReverse);
-		Fields["IsMasterJump"] = JSON_Stringify(C.IsMasterJump);
-		Fields["Factor"] = JSON_Stringify(C.Factor);
-		Fields["User"] = JSON_Stringify(C.User);
-		Fields["PlayerWasSpawned"] = JSON_Stringify(C.PlayerWasSpawned);
-		Fields["PlayerWasInLadderMatch"] = JSON_Stringify(C.PlayerWasInLadderMatch);
-		Fields["CommandName"] = JSON_Stringify(C.CommandName);
-		Fields["CommandValueBoolean"] = JSON_Stringify(C.CommandValueBoolean);
-		Fields["CommandValueInteger"] = JSON_Stringify(C.CommandValueInteger);
-		Fields["CommandValueReal"] = JSON_Stringify(C.CommandValueReal);
-		Fields["CommandValueText"] = JSON_Stringify(C.CommandValueText);
-	}
-	if (_V is CSmMapLandmark) {
-		declare C <=> (_V as CSmMapLandmark);
-		Fields["Tag"] = JSON_Stringify(C.Tag);
-		Fields["Order"] = JSON_Stringify(C.Order);
-		Fields["Position"] = JSON_Stringify(C.Position);
-		Fields["Base"] = JSON_Stringify(C.Base);
-		Fields["Gate"] = JSON_Stringify(C.Gate);
-		Fields["Gauge"] = JSON_Stringify(C.Gauge);
-		Fields["Sector"] = JSON_Stringify(C.Sector);
-		Fields["PlayerSpawn"] = JSON_Stringify(C.PlayerSpawn);
-		Fields["BotPath"] = JSON_Stringify(C.BotPath);
-		Fields["ObjectAnchor"] = JSON_Stringify(C.ObjectAnchor);
-	}
-	if (_V is CMlControl) {
-		declare C <=> (_V as CMlControl);
-		Fields["ControlId"] = JSON_Stringify(C.ControlId);
-		declare Part = "[";
-		for(I, 0, C.ControlClasses.count-1) {
-			Part ^= JSON_Stringify(C.ControlClasses[I]);
-			if (I < C.ControlClasses.count-1) Part ^= ",";
-		}
-		Fields["ControlClasses"] = Part ^ "]";
-		Fields["Size"] = JSON_Stringify(C.Size);
-		Fields["HorizontalAlign"] = JSON_Stringify(C.HorizontalAlign);
-		Fields["VerticalAlign"] = JSON_Stringify(C.VerticalAlign);
-		Fields["Visible"] = JSON_Stringify(C.Visible);
-		Fields["RelativePosition"] = JSON_Stringify(C.RelativePosition);
-		Fields["RelativeScale"] = JSON_Stringify(C.RelativeScale);
-		Fields["RelativeRotation"] = JSON_Stringify(C.RelativeRotation);
-		Fields["AbsolutePosition"] = JSON_Stringify(C.AbsolutePosition);
-		Fields["AbsoluteScale"] = JSON_Stringify(C.AbsoluteScale);
-		Fields["AbsoluteRotation"] = JSON_Stringify(C.AbsoluteRotation);
-	}
-	if (_V is CMlFrame) {
-		declare C <=> (_V as CMlFrame);
-		declare Part = "[";
-		for(I, 0, C.Controls.count-1) {
-			Part ^= JSON_Stringify(C.Controls[I]);
-			if (I < C.Controls.count-1) Part ^= ",";
-		}
-		Fields["Controls"] = Part ^ "]";
-		Fields["ClipWindowActive"] = JSON_Stringify(C.ClipWindowActive);
-		Fields["ClipWindowRelativePosition"] = JSON_Stringify(C.ClipWindowRelativePosition);
-		Fields["ClipWindowSize"] = JSON_Stringify(C.ClipWindowSize);
-	}
-	if (_V is CMlGraph) {
-		declare C <=> (_V as CMlGraph);
-		Fields["CoordsMin"] = JSON_Stringify(C.CoordsMin);
-		Fields["CoordsMax"] = JSON_Stringify(C.CoordsMax);
-		declare Part = "[";
-		for(I, 0, C.Curves.count-1) {
-			Part ^= JSON_Stringify(C.Curves[I]);
-			if (I < C.Curves.count-1) Part ^= ",";
-		}
-		Fields["Curves"] = Part ^ "]";
-	}
-	if (_V is CMlGauge) {
-		declare C <=> (_V as CMlGauge);
-		Fields["Style"] = JSON_Stringify(C.Style);
-		Fields["Ratio"] = JSON_Stringify(C.Ratio);
-		Fields["GradingRatio"] = JSON_Stringify(C.GradingRatio);
-		Fields["Clan"] = JSON_Stringify(C.Clan);
-		Fields["Color"] = JSON_Stringify(C.Color);
-		Fields["DrawBackground"] = JSON_Stringify(C.DrawBackground);
-		Fields["DrawBlockBackground"] = JSON_Stringify(C.DrawBlockBackground);
-		Fields["CenteredBar"] = JSON_Stringify(C.CenteredBar);
-	}
-	if (_V is CMlLabel) {
-		declare C <=> (_V as CMlLabel);
-		Fields["Style"] = JSON_Stringify(C.Style);
-		Fields["Substyle"] = JSON_Stringify(C.Substyle);
-		Fields["TextFont"] = JSON_Stringify(C.TextFont);
-		Fields["Value"] = JSON_Stringify(C.Value);
-		Fields["ValueLineCount"] = JSON_Stringify(C.ValueLineCount);
-		Fields["MaxLine"] = JSON_Stringify(C.MaxLine);
-		Fields["AppendEllipsis"] = JSON_Stringify(C.AppendEllipsis);
-		Fields["AutoNewLine"] = JSON_Stringify(C.AutoNewLine);
-		Fields["Opacity"] = JSON_Stringify(C.Opacity);
-		Fields["TextColor"] = JSON_Stringify(C.TextColor);
-		Fields["TextSize"] = JSON_Stringify(C.TextSize);
-	}
-	if (_V is CMlMinimap) {
-		declare C <=> (_V as CMlMinimap);
-		Fields["WorldPosition"] = JSON_Stringify(C.WorldPosition);
-		Fields["MapPosition"] = JSON_Stringify(C.MapPosition);
-		Fields["MapYaw"] = JSON_Stringify(C.MapYaw);
-		Fields["ZoomFactor"] = JSON_Stringify(C.ZoomFactor);
-	}
-	if (_V is CMlEntry) {
-		declare C <=> (_V as CMlEntry);
-		Fields["Value"] = JSON_Stringify(C.Value);
-		Fields["MaxLine"] = JSON_Stringify(C.MaxLine);
-		Fields["AutoNewLine"] = JSON_Stringify(C.AutoNewLine);
-	}
-	if (_V is CMlFileEntry) {
-		declare C <=> (_V as CMlFileEntry);
-		Fields["FullFileName"] = JSON_Stringify(C.FullFileName);
-	}
-	if (_V is CMlQuad) {
-		declare C <=> (_V as CMlQuad);
-		Fields["ImageUrl"] = JSON_Stringify(C.ImageUrl);
-		Fields["ImageUrlFocus"] = JSON_Stringify(C.ImageUrlFocus);
-		Fields["Style"] = JSON_Stringify(C.Style);
-		Fields["Substyle"] = JSON_Stringify(C.Substyle);
-		Fields["StyleSelected"] = JSON_Stringify(C.StyleSelected);
-		Fields["DownloadInProgress"] = JSON_Stringify(C.DownloadInProgress);
-		Fields["Colorize"] = JSON_Stringify(C.Colorize);
-		Fields["ModulateColor"] = JSON_Stringify(C.ModulateColor);
-		Fields["BgColor"] = JSON_Stringify(C.BgColor);
-		Fields["BgColorFocus"] = JSON_Stringify(C.BgColorFocus);
-		Fields["Opacity"] = JSON_Stringify(C.Opacity);
-		Fields["KeepRatio"] = JSON_Stringify(C.KeepRatio);
-	}
-	if (_V is CManiaAppEvent) {
-		declare C <=> (_V as CManiaAppEvent);
-		Fields["Type"] = JSON_Stringify(C.Type);
-		Fields["CustomEventLayer"] = JSON_Stringify(C.CustomEventLayer);
-		Fields["CustomEventType"] = JSON_Stringify(C.CustomEventType);
-		declare Part = "[";
-		for(I, 0, C.CustomEventData.count-1) {
-			Part ^= JSON_Stringify(C.CustomEventData[I]);
-			if (I < C.CustomEventData.count-1) Part ^= ",";
-		}
-		Fields["CustomEventData"] = Part ^ "]";
-		Fields["ExternalEventType"] = JSON_Stringify(C.ExternalEventType);
-		Part = "[";
-		for(I, 0, C.ExternalEventData.count-1) {
-			Part ^= JSON_Stringify(C.ExternalEventData[I]);
-			if (I < C.ExternalEventData.count-1) Part ^= ",";
-		}
-		Fields["ExternalEventData"] = Part ^ "]";
-		Fields["MenuNavAction"] = JSON_Stringify(C.MenuNavAction);
-		Fields["KeyCode"] = JSON_Stringify(C.KeyCode);
-		Fields["KeyName"] = JSON_Stringify(C.KeyName);
-	}
-	if (_V is CEditorPluginEvent) {
-		declare C <=> (_V as CEditorPluginEvent);
-		Fields["Type"] = JSON_Stringify(C.Type);
-		Fields["Input"] = JSON_Stringify(C.Input);
-		Fields["EditedAnchorDataId"] = JSON_Stringify(C.EditedAnchorDataId);
-	}
-	if (_V is CScore) {
-		declare C <=> (_V as CScore);
-		Fields["User"] = JSON_Stringify(C.User);
-		Fields["IsRegisteredForLadderMatch"] = JSON_Stringify(C.IsRegisteredForLadderMatch);
-		Fields["LadderScore"] = JSON_Stringify(C.LadderScore);
-		Fields["LadderRankSortValue"] = JSON_Stringify(C.LadderRankSortValue);
-		Fields["LadderMatchScoreValue"] = JSON_Stringify(C.LadderMatchScoreValue);
-		Fields["LadderClan"] = JSON_Stringify(C.LadderClan);
-	}
-	if (_V is CTmScore) {
-		declare C <=> (_V as CTmScore);
-		Fields["TeamNum"] = JSON_Stringify(C.TeamNum);
-		Fields["Points"] = JSON_Stringify(C.Points);
-		Fields["BestRace"] = JSON_Stringify(C.BestRace);
-		Fields["BestLap"] = JSON_Stringify(C.BestLap);
-		Fields["PrevRaceDeltaPoints"] = JSON_Stringify(C.PrevRaceDeltaPoints);
-		Fields["PrevRace"] = JSON_Stringify(C.PrevRace);
-		Fields["TempResult"] = JSON_Stringify(C.TempResult);
-	}
-	if (_V is CSmScore) {
-		declare C <=> (_V as CSmScore);
-		Fields["TeamNum"] = JSON_Stringify(C.TeamNum);
-		Fields["Points"] = JSON_Stringify(C.Points);
-		Fields["RoundPoints"] = JSON_Stringify(C.RoundPoints);
-		Fields["NbEliminationsInflicted"] = JSON_Stringify(C.NbEliminationsInflicted);
-		Fields["NbEliminationsTaken"] = JSON_Stringify(C.NbEliminationsTaken);
-		Fields["NbRespawnsRequested"] = JSON_Stringify(C.NbRespawnsRequested);
-		Fields["DamageInflicted"] = JSON_Stringify(C.DamageInflicted);
-		Fields["DamageTaken"] = JSON_Stringify(C.DamageTaken);
-	}
-	if (_V is CXmlDocument) {
-		declare C <=> (_V as CXmlDocument);
-		Fields["TextContents"] = JSON_Stringify(C.TextContents);
-		Fields["Root"] = JSON_Stringify(C.Root);
-		declare Part = "[";
-		for(I, 0, C.Nodes.count-1) {
-			Part ^= JSON_Stringify(C.Nodes[I]);
-			if (I < C.Nodes.count-1) Part ^= ",";
-		}
-		Fields["Nodes"] = Part ^ "]";
+	if (_V is CNod) {
+		declare C <=> (_V as CNod);
+		Fields["Id"] = JSON_Stringify(C.Id);
 	}
 	if (_V is CMlScript) {
 		declare C <=> (_V as CMlScript);
@@ -1230,6 +1001,18 @@ Text JSON_Stringify(CNod _V) {
 		Fields["Http"] = JSON_Stringify(C.Http);
 		Fields["Audio"] = JSON_Stringify(C.Audio);
 	}
+	if (_V is CMlBrowser) {
+		declare C <=> (_V as CMlBrowser);
+		Fields["CurMap"] = JSON_Stringify(C.CurMap);
+		Fields["BuddyDoResult"] = JSON_Stringify(C.BuddyDoResult);
+		Fields["BuddyDoErrorMessage"] = JSON_Stringify(C.BuddyDoErrorMessage);
+		Fields["IsInBrowser"] = JSON_Stringify(C.IsInBrowser);
+		Fields["BrowserFocusedFrameId"] = JSON_Stringify(C.BrowserFocusedFrameId);
+	}
+	if (_V is CMlStation) {
+		declare C <=> (_V as CMlStation);
+		Fields["Station"] = JSON_Stringify(C.Station);
+	}
 	if (_V is CMlScriptIngame) {
 		declare C <=> (_V as CMlScriptIngame);
 		Fields["GameTime"] = JSON_Stringify(C.GameTime);
@@ -1246,7 +1029,7 @@ Text JSON_Stringify(CNod _V) {
 		}
 		Fields["Teams"] = Part ^ "]";
 		Fields["CurrentServerLogin"] = JSON_Stringify(C.CurrentServerLogin);
-		Fields["CurrentServerName"] = JSON_Stringify(C.CurrentServerName);
+		Fields["CurrentServerName"] = JSON_Stringify(_JSON_Es(C.CurrentServerName));
 		Fields["CurrentServerJoinLink"] = JSON_Stringify(C.CurrentServerJoinLink);
 		Fields["CurrentServerModeName"] = JSON_Stringify(C.CurrentServerModeName);
 	}
@@ -1363,296 +1146,90 @@ Text JSON_Stringify(CNod _V) {
 		Fields["MapIsLapRace"] = JSON_Stringify(C.MapIsLapRace);
 		Fields["MapNbLaps"] = JSON_Stringify(C.MapNbLaps);
 	}
-	if (_V is CMlBrowser) {
-		declare C <=> (_V as CMlBrowser);
-		Fields["CurMap"] = JSON_Stringify(C.CurMap);
-		Fields["BuddyDoResult"] = JSON_Stringify(C.BuddyDoResult);
-		Fields["BuddyDoErrorMessage"] = JSON_Stringify(C.BuddyDoErrorMessage);
-		Fields["IsInBrowser"] = JSON_Stringify(C.IsInBrowser);
-		Fields["BrowserFocusedFrameId"] = JSON_Stringify(C.BrowserFocusedFrameId);
-	}
-	if (_V is CMlStation) {
-		declare C <=> (_V as CMlStation);
-		Fields["Station"] = JSON_Stringify(C.Station);
-	}
-	if (_V is CSmAction) {
-		declare C <=> (_V as CSmAction);
-		Fields["Now"] = JSON_Stringify(C.Now);
-		Fields["Variant"] = JSON_Stringify(C.Variant);
-		declare Part = "[";
-		for(I, 0, C.Players.count-1) {
-			Part ^= JSON_Stringify(C.Players[I]);
-			if (I < C.Players.count-1) Part ^= ",";
-		}
-		Fields["Players"] = Part ^ "]";
-		Fields["Owner"] = JSON_Stringify(C.Owner);
-		Fields["IsActive"] = JSON_Stringify(C.IsActive);
-		Fields["Energy"] = JSON_Stringify(C.Energy);
-		Fields["EnergyMax"] = JSON_Stringify(C.EnergyMax);
-		Fields["EnergyCost"] = JSON_Stringify(C.EnergyCost);
-		Fields["EnergyReload"] = JSON_Stringify(C.EnergyReload);
-		Part = "[";
-		for(I, 0, C.PendingEvents.count-1) {
-			Part ^= JSON_Stringify(C.PendingEvents[I]);
-			if (I < C.PendingEvents.count-1) Part ^= ",";
-		}
-		Fields["PendingEvents"] = Part ^ "]";
-		Fields["Cooldown"] = JSON_Stringify(C.Cooldown);
-	}
-	if (_V is CAnchorData) {
-		declare C <=> (_V as CAnchorData);
-		Fields["DefaultTag"] = JSON_Stringify(C.DefaultTag);
-		Fields["DefaultOrder"] = JSON_Stringify(C.DefaultOrder);
-		Fields["Tag"] = JSON_Stringify(C.Tag);
-		Fields["Order"] = JSON_Stringify(C.Order);
-	}
-	if (_V is CSmMapObjectAnchor) {
-		declare C <=> (_V as CSmMapObjectAnchor);
-		Fields["ItemName"] = JSON_Stringify(C.ItemName);
-		Fields["ItemModelId"] = JSON_Stringify(C.ItemModelId);
-	}
-	if (_V is CBlockUnit) {
-		declare C <=> (_V as CBlockUnit);
-		Fields["Offset"] = JSON_Stringify(C.Offset);
-		Fields["BlockUnitModel"] = JSON_Stringify(C.BlockUnitModel);
-		Fields["Block"] = JSON_Stringify(C.Block);
-	}
-	if (_V is CManiaApp) {
-		declare C <=> (_V as CManiaApp);
-		Fields["Now"] = JSON_Stringify(C.Now);
-		Fields["IsVisible"] = JSON_Stringify(C.IsVisible);
-		Fields["LocalUser"] = JSON_Stringify(C.LocalUser);
-		Fields["LoadedTitle"] = JSON_Stringify(C.LoadedTitle);
-		Fields["EnableMenuNavigationInputs"] = JSON_Stringify(C.EnableMenuNavigationInputs);
-		Fields["MouseX"] = JSON_Stringify(C.MouseX);
-		Fields["MouseY"] = JSON_Stringify(C.MouseY);
-		declare Part = "[";
-		for(I, 0, C.UILayers.count-1) {
-			Part ^= JSON_Stringify(C.UILayers[I]);
-			if (I < C.UILayers.count-1) Part ^= ",";
-		}
-		Fields["UILayers"] = Part ^ "]";
-		Fields["Xml"] = JSON_Stringify(C.Xml);
-		Fields["Http"] = JSON_Stringify(C.Http);
-		Fields["Audio"] = JSON_Stringify(C.Audio);
-	}
-	if (_V is CEditorPlugin) {
-		declare C <=> (_V as CEditorPlugin);
-		declare Part = "[";
-		for(I, 0, C.PendingEvents.count-1) {
-			Part ^= JSON_Stringify(C.PendingEvents[I]);
-			if (I < C.PendingEvents.count-1) Part ^= ",";
-		}
-		Fields["PendingEvents"] = Part ^ "]";
-		Fields["Map"] = JSON_Stringify(C.Map);
-		Fields["MapName"] = JSON_Stringify(C.MapName);
-		Fields["PlaceMode"] = JSON_Stringify(C.PlaceMode);
-		Fields["EditMode"] = JSON_Stringify(C.EditMode);
-		Fields["UndergroundMode"] = JSON_Stringify(C.UndergroundMode);
-		Fields["BlockStockMode"] = JSON_Stringify(C.BlockStockMode);
-		Fields["CursorCoord"] = JSON_Stringify(C.CursorCoord);
-		Fields["CursorDir"] = JSON_Stringify(C.CursorDir);
-		Fields["CursorBlockModel"] = JSON_Stringify(C.CursorBlockModel);
-		Fields["CursorTerrainBlockModel"] = JSON_Stringify(C.CursorTerrainBlockModel);
-		Fields["CursorMacroblockModel"] = JSON_Stringify(C.CursorMacroblockModel);
-		Fields["CameraVAngle"] = JSON_Stringify(C.CameraVAngle);
-		Fields["CameraHAngle"] = JSON_Stringify(C.CameraHAngle);
-		Fields["CameraToTargetDistance"] = JSON_Stringify(C.CameraToTargetDistance);
-		Fields["TargetedPosition"] = JSON_Stringify(C.TargetedPosition);
-		Fields["EnableAirMapping"] = JSON_Stringify(C.EnableAirMapping);
-		Fields["EnableMixMapping"] = JSON_Stringify(C.EnableMixMapping);
-		Part = "[";
-		for(I, 0, C.Items.count-1) {
-			Part ^= JSON_Stringify(C.Items[I]);
-			if (I < C.Items.count-1) Part ^= ",";
-		}
-		Fields["Items"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.MediatrackIngameClips.count-1) {
-			Part ^= JSON_Stringify(C.MediatrackIngameClips[I]);
-			if (I < C.MediatrackIngameClips.count-1) Part ^= ",";
-		}
-		Fields["MediatrackIngameClips"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.MediatrackIngameIsScriptClips.count-1) {
-			Part ^= JSON_Stringify(C.MediatrackIngameIsScriptClips[I]);
-			if (I < C.MediatrackIngameIsScriptClips.count-1) Part ^= ",";
-		}
-		Fields["MediatrackIngameIsScriptClips"] = Part ^ "]";
-		Fields["MediatrackIngameEditedClipIndex"] = JSON_Stringify(C.MediatrackIngameEditedClipIndex);
-		Part = "[";
-		for(I, 0, C.Blocks.count-1) {
-			Part ^= JSON_Stringify(C.Blocks[I]);
-			if (I < C.Blocks.count-1) Part ^= ",";
-		}
-		Fields["Blocks"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.BlockModels.count-1) {
-			Part ^= JSON_Stringify(C.BlockModels[I]);
-			if (I < C.BlockModels.count-1) Part ^= ",";
-		}
-		Fields["BlockModels"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.TerrainBlockModels.count-1) {
-			Part ^= JSON_Stringify(C.TerrainBlockModels[I]);
-			if (I < C.TerrainBlockModels.count-1) Part ^= ",";
-		}
-		Fields["TerrainBlockModels"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.MacroblockModels.count-1) {
-			Part ^= JSON_Stringify(C.MacroblockModels[I]);
-			if (I < C.MacroblockModels.count-1) Part ^= ",";
-		}
-		Fields["MacroblockModels"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.AnchorData.count-1) {
-			Part ^= JSON_Stringify(C.AnchorData[I]);
-			if (I < C.AnchorData.count-1) Part ^= ",";
-		}
-		Fields["AnchorData"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.CustomSelectionCoords.count-1) {
-			Part ^= JSON_Stringify(C.CustomSelectionCoords[I]);
-			if (I < C.CustomSelectionCoords.count-1) Part ^= ",";
-		}
-		Fields["CustomSelectionCoords"] = Part ^ "]";
-		Fields["CustomSelectionRGB"] = JSON_Stringify(C.CustomSelectionRGB);
-		Fields["EnableEditorInputsCustomProcessing"] = JSON_Stringify(C.EnableEditorInputsCustomProcessing);
-		Fields["EditorInputIsDown_Menu"] = JSON_Stringify(C.EditorInputIsDown_Menu);
-		Fields["EditorInputIsDown_SwitchToRace"] = JSON_Stringify(C.EditorInputIsDown_SwitchToRace);
-		Fields["EditorInputIsDown_CursorUp"] = JSON_Stringify(C.EditorInputIsDown_CursorUp);
-		Fields["EditorInputIsDown_CursorRight"] = JSON_Stringify(C.EditorInputIsDown_CursorRight);
-		Fields["EditorInputIsDown_CursorDown"] = JSON_Stringify(C.EditorInputIsDown_CursorDown);
-		Fields["EditorInputIsDown_CursorLeft"] = JSON_Stringify(C.EditorInputIsDown_CursorLeft);
-		Fields["EditorInputIsDown_CursorRaise"] = JSON_Stringify(C.EditorInputIsDown_CursorRaise);
-		Fields["EditorInputIsDown_CursorLower"] = JSON_Stringify(C.EditorInputIsDown_CursorLower);
-		Fields["EditorInputIsDown_CursorTurn"] = JSON_Stringify(C.EditorInputIsDown_CursorTurn);
-		Fields["EditorInputIsDown_CursorPick"] = JSON_Stringify(C.EditorInputIsDown_CursorPick);
-		Fields["EditorInputIsDown_CursorPlace"] = JSON_Stringify(C.EditorInputIsDown_CursorPlace);
-		Fields["EditorInputIsDown_CursorDelete"] = JSON_Stringify(C.EditorInputIsDown_CursorDelete);
-		Fields["EditorInputIsDown_CameraUp"] = JSON_Stringify(C.EditorInputIsDown_CameraUp);
-		Fields["EditorInputIsDown_CameraRight"] = JSON_Stringify(C.EditorInputIsDown_CameraRight);
-		Fields["EditorInputIsDown_CameraDown"] = JSON_Stringify(C.EditorInputIsDown_CameraDown);
-		Fields["EditorInputIsDown_CameraLeft"] = JSON_Stringify(C.EditorInputIsDown_CameraLeft);
-		Fields["EditorInputIsDown_IconUp"] = JSON_Stringify(C.EditorInputIsDown_IconUp);
-		Fields["EditorInputIsDown_IconRight"] = JSON_Stringify(C.EditorInputIsDown_IconRight);
-		Fields["EditorInputIsDown_IconDown"] = JSON_Stringify(C.EditorInputIsDown_IconDown);
-		Fields["EditorInputIsDown_IconLeft"] = JSON_Stringify(C.EditorInputIsDown_IconLeft);
-		Fields["CollectionSquareSize"] = JSON_Stringify(C.CollectionSquareSize);
-		Fields["CollectionSquareHeight"] = JSON_Stringify(C.CollectionSquareHeight);
-		Fields["CollectionGroundY"] = JSON_Stringify(C.CollectionGroundY);
-		Fields["ManialinkText"] = JSON_Stringify(C.ManialinkText);
-		Fields["ManialinkPage"] = JSON_Stringify(C.ManialinkPage);
-	}
-	if (_V is CMapType) {
-		declare C <=> (_V as CMapType);
-		Fields["CustomEditAnchorData"] = JSON_Stringify(C.CustomEditAnchorData);
-		Fields["ValidationStatus"] = JSON_Stringify(C.ValidationStatus);
-		Fields["ValidabilityRequirementsMessage"] = JSON_Stringify(C.ValidabilityRequirementsMessage);
-		Fields["ValidationEndRequested"] = JSON_Stringify(C.ValidationEndRequested);
-		Fields["IsSwitchedToPlayground"] = JSON_Stringify(C.IsSwitchedToPlayground);
-		Fields["UIManager"] = JSON_Stringify(C.UIManager);
-		declare Part = "[";
-		for(I, 0, C.Users.count-1) {
-			Part ^= JSON_Stringify(C.Users[I]);
-			if (I < C.Users.count-1) Part ^= ",";
-		}
-		Fields["Users"] = Part ^ "]";
-	}
-	if (_V is CSmMapType) {
-		declare C <=> (_V as CSmMapType);
-		Fields["Mode"] = JSON_Stringify(C.Mode);
-		declare Part = "[";
-		for(I, 0, C.AllPlayers.count-1) {
-			Part ^= JSON_Stringify(C.AllPlayers[I]);
-			if (I < C.AllPlayers.count-1) Part ^= ",";
-		}
-		Fields["AllPlayers"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.Players.count-1) {
-			Part ^= JSON_Stringify(C.Players[I]);
-			if (I < C.Players.count-1) Part ^= ",";
-		}
-		Fields["Players"] = Part ^ "]";
-	}
-	if (_V is CTmMapType) {
-		declare C <=> (_V as CTmMapType);
-		Fields["Mode"] = JSON_Stringify(C.Mode);
-		declare Part = "[";
-		for(I, 0, C.AllPlayers.count-1) {
-			Part ^= JSON_Stringify(C.AllPlayers[I]);
-			if (I < C.AllPlayers.count-1) Part ^= ",";
-		}
-		Fields["AllPlayers"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.Players.count-1) {
-			Part ^= JSON_Stringify(C.Players[I]);
-			if (I < C.Players.count-1) Part ^= ",";
-		}
-		Fields["Players"] = Part ^ "]";
-	}
-	if (_V is CManiaAppTitle) {
-		declare C <=> (_V as CManiaAppTitle);
-		declare Part = "[";
-		for(I, 0, C.PendingEvents.count-1) {
-			Part ^= JSON_Stringify(C.PendingEvents[I]);
-			if (I < C.PendingEvents.count-1) Part ^= ",";
-		}
-		Fields["PendingEvents"] = Part ^ "]";
-		Fields["LoadingScreenRequireKeyPressed"] = JSON_Stringify(C.LoadingScreenRequireKeyPressed);
-		Fields["DontScaleMainMenuForHMD"] = JSON_Stringify(C.DontScaleMainMenuForHMD);
-	}
-	if (_V is CMap) {
-		declare C <=> (_V as CMap);
-		Fields["MapInfo"] = JSON_Stringify(C.MapInfo);
-		Fields["MapName"] = JSON_Stringify(C.MapName);
-		Fields["Comments"] = JSON_Stringify(C.Comments);
-		Fields["AuthorZoneIconUrl"] = JSON_Stringify(C.AuthorZoneIconUrl);
-		Fields["CollectionName"] = JSON_Stringify(C.CollectionName);
-		Fields["DecorationName"] = JSON_Stringify(C.DecorationName);
-		Fields["AuthorLogin"] = JSON_Stringify(C.AuthorLogin);
-		Fields["AuthorNickName"] = JSON_Stringify(C.AuthorNickName);
-		Fields["AuthorZonePath"] = JSON_Stringify(C.AuthorZonePath);
-		Fields["MapType"] = JSON_Stringify(C.MapType);
-		Fields["MapStyle"] = JSON_Stringify(C.MapStyle);
-		Fields["TMObjective_AuthorTime"] = JSON_Stringify(C.TMObjective_AuthorTime);
-		Fields["TMObjective_GoldTime"] = JSON_Stringify(C.TMObjective_GoldTime);
-		Fields["TMObjective_SilverTime"] = JSON_Stringify(C.TMObjective_SilverTime);
-		Fields["TMObjective_BronzeTime"] = JSON_Stringify(C.TMObjective_BronzeTime);
-		Fields["TMObjective_NbLaps"] = JSON_Stringify(C.TMObjective_NbLaps);
-		Fields["TMObjective_IsLapRace"] = JSON_Stringify(C.TMObjective_IsLapRace);
-		Fields["ObjectiveTextAuthor"] = JSON_Stringify(C.ObjectiveTextAuthor);
-		Fields["ObjectiveTextGold"] = JSON_Stringify(C.ObjectiveTextGold);
-		Fields["ObjectiveTextSilver"] = JSON_Stringify(C.ObjectiveTextSilver);
-		Fields["ObjectiveTextBronze"] = JSON_Stringify(C.ObjectiveTextBronze);
-		Fields["CopperPrice"] = JSON_Stringify(C.CopperPrice);
-		Fields["Size"] = JSON_Stringify(C.Size);
-	}
 	if (_V is CItemAnchor) {
 		declare C <=> (_V as CItemAnchor);
 		Fields["Position"] = JSON_Stringify(C.Position);
 	}
-	if (_V is CTeam) {
-		declare C <=> (_V as CTeam);
-		Fields["Name"] = JSON_Stringify(C.Name);
-		Fields["ZonePath"] = JSON_Stringify(C.ZonePath);
-		Fields["City"] = JSON_Stringify(C.City);
-		Fields["EmblemUrl"] = JSON_Stringify(C.EmblemUrl);
-		Fields["PresentationManialinkUrl"] = JSON_Stringify(C.PresentationManialinkUrl);
-		Fields["ClubLinkUrl"] = JSON_Stringify(C.ClubLinkUrl);
-		Fields["ColorPrimary"] = JSON_Stringify(C.ColorPrimary);
-		Fields["ColorSecondary"] = JSON_Stringify(C.ColorSecondary);
-		Fields["ColorText"] = JSON_Stringify(C.ColorText);
-		Fields["ColorizedName"] = JSON_Stringify(C.ColorizedName);
+	if (_V is CMapInfo) {
+		declare C <=> (_V as CMapInfo);
+		Fields["MapUid"] = JSON_Stringify(C.MapUid);
+		Fields["Comments"] = JSON_Stringify(_JSON_Es(C.Comments));
+		Fields["CopperPrice"] = JSON_Stringify(C.CopperPrice);
+		Fields["CollectionName"] = JSON_Stringify(C.CollectionName);
+		Fields["AuthorLogin"] = JSON_Stringify(C.AuthorLogin);
+		Fields["AuthorNickName"] = JSON_Stringify(_JSON_Es(C.AuthorNickName));
+		Fields["AuthorZonePath"] = JSON_Stringify(C.AuthorZonePath);
+		Fields["MapType"] = JSON_Stringify(C.MapType);
+		Fields["MapStyle"] = JSON_Stringify(C.MapStyle);
+		Fields["Unlocked"] = JSON_Stringify(C.Unlocked);
+		Fields["Name"] = JSON_Stringify(_JSON_Es(C.Name));
+		Fields["Path"] = JSON_Stringify(C.Path);
+	}
+	if (_V is CBlockUnitModel) {
+		declare C <=> (_V as CBlockUnitModel);
+		Fields["Offset"] = JSON_Stringify(C.Offset);
+		declare Part = "[";
+		for(I, 0, C.Clips.count-1) {
+			Part ^= JSON_Stringify(C.Clips[I]);
+			if (I < C.Clips.count-1) Part ^= ",";
+		}
+		Fields["Clips"] = Part ^ "]";
+	}
+	if (_V is CScore) {
+		declare C <=> (_V as CScore);
+		Fields["User"] = JSON_Stringify(C.User);
+		Fields["IsRegisteredForLadderMatch"] = JSON_Stringify(C.IsRegisteredForLadderMatch);
+		Fields["LadderScore"] = JSON_Stringify(C.LadderScore);
+		Fields["LadderRankSortValue"] = JSON_Stringify(C.LadderRankSortValue);
+		Fields["LadderMatchScoreValue"] = JSON_Stringify(C.LadderMatchScoreValue);
+		Fields["LadderClan"] = JSON_Stringify(C.LadderClan);
+	}
+	if (_V is CSmScore) {
+		declare C <=> (_V as CSmScore);
+		Fields["TeamNum"] = JSON_Stringify(C.TeamNum);
+		Fields["Points"] = JSON_Stringify(C.Points);
+		Fields["RoundPoints"] = JSON_Stringify(C.RoundPoints);
+		Fields["NbEliminationsInflicted"] = JSON_Stringify(C.NbEliminationsInflicted);
+		Fields["NbEliminationsTaken"] = JSON_Stringify(C.NbEliminationsTaken);
+		Fields["NbRespawnsRequested"] = JSON_Stringify(C.NbRespawnsRequested);
+		Fields["DamageInflicted"] = JSON_Stringify(C.DamageInflicted);
+		Fields["DamageTaken"] = JSON_Stringify(C.DamageTaken);
+	}
+	if (_V is CTmScore) {
+		declare C <=> (_V as CTmScore);
+		Fields["TeamNum"] = JSON_Stringify(C.TeamNum);
+		Fields["Points"] = JSON_Stringify(C.Points);
+		Fields["BestRace"] = JSON_Stringify(C.BestRace);
+		Fields["BestLap"] = JSON_Stringify(C.BestLap);
+		Fields["PrevRaceDeltaPoints"] = JSON_Stringify(C.PrevRaceDeltaPoints);
+		Fields["PrevRace"] = JSON_Stringify(C.PrevRace);
+		Fields["TempResult"] = JSON_Stringify(C.TempResult);
+	}
+	if (_V is CSmLandmark) {
+		declare C <=> (_V as CSmLandmark);
+		Fields["Tag"] = JSON_Stringify(C.Tag);
+		Fields["Order"] = JSON_Stringify(C.Order);
+		Fields["Position"] = JSON_Stringify(C.Position);
+		Fields["DirFront"] = JSON_Stringify(C.DirFront);
+	}
+	if (_V is CSmBlock) {
+		declare C <=> (_V as CSmBlock);
+		Fields["Base"] = JSON_Stringify(C.Base);
+	}
+	if (_V is CSmBlockPole) {
+		declare C <=> (_V as CSmBlockPole);
+		Fields["Captured"] = JSON_Stringify(C.Captured);
+		Fields["Sector"] = JSON_Stringify(C.Sector);
+		Fields["Gauge"] = JSON_Stringify(C.Gauge);
 	}
 	if (_V is CMode) {
 		declare C <=> (_V as CMode);
 		Fields["ModeStatusMessage"] = JSON_Stringify(C.ModeStatusMessage);
 		Fields["LoadedTitle"] = JSON_Stringify(C.LoadedTitle);
 		Fields["ServerLogin"] = JSON_Stringify(C.ServerLogin);
-		Fields["ServerName"] = JSON_Stringify(C.ServerName);
+		Fields["ServerName"] = JSON_Stringify(_JSON_Es(C.ServerName));
 		Fields["ServerModeName"] = JSON_Stringify(C.ServerModeName);
-		Fields["MapName"] = JSON_Stringify(C.MapName);
+		Fields["MapName"] = JSON_Stringify(_JSON_Es(C.MapName));
 		Fields["Map"] = JSON_Stringify(C.Map);
 		Fields["MapPlayerModelName"] = JSON_Stringify(C.MapPlayerModelName);
 		declare Part = "[";
@@ -1667,9 +1244,9 @@ Text JSON_Stringify(CNod _V) {
 			if (I < C.Teams.count-1) Part ^= ",";
 		}
 		Fields["Teams"] = Part ^ "]";
-		Fields["NeutralEmblemUrl"] = JSON_Stringify(C.NeutralEmblemUrl);
-		Fields["ForcedClubLinkUrl1"] = JSON_Stringify(C.ForcedClubLinkUrl1);
-		Fields["ForcedClubLinkUrl2"] = JSON_Stringify(C.ForcedClubLinkUrl2);
+		Fields["NeutralEmblemUrl"] = JSON_Stringify(_JSON_Es(C.NeutralEmblemUrl));
+		Fields["ForcedClubLinkUrl1"] = JSON_Stringify(_JSON_Es(C.ForcedClubLinkUrl1));
+		Fields["ForcedClubLinkUrl2"] = JSON_Stringify(_JSON_Es(C.ForcedClubLinkUrl2));
 		Fields["Now"] = JSON_Stringify(C.Now);
 		Fields["Period"] = JSON_Stringify(C.Period);
 		Fields["MatchEndRequested"] = JSON_Stringify(C.MatchEndRequested);
@@ -1927,443 +1504,129 @@ Text JSON_Stringify(CNod _V) {
 		Fields["MapIsLapRace"] = JSON_Stringify(C.MapIsLapRace);
 		Fields["MapNbLaps"] = JSON_Stringify(C.MapNbLaps);
 	}
-	if (_V is CSmMapBase) {
-		declare C <=> (_V as CSmMapBase);
+	if (_V is CAudioSound) {
+		declare C <=> (_V as CAudioSound);
+		Fields["IsPlaying"] = JSON_Stringify(C.IsPlaying);
+		Fields["DownloadInProgress"] = JSON_Stringify(C.DownloadInProgress);
+		Fields["Volume"] = JSON_Stringify(C.Volume);
+		Fields["VolumedB"] = JSON_Stringify(C.VolumedB);
+		Fields["Pitch"] = JSON_Stringify(C.Pitch);
+		Fields["RelativePosition"] = JSON_Stringify(C.RelativePosition);
+		Fields["PlayCursor"] = JSON_Stringify(C.PlayCursor);
+		Fields["PlayLength"] = JSON_Stringify(C.PlayLength);
+	}
+	if (_V is CMlControl) {
+		declare C <=> (_V as CMlControl);
+		Fields["ControlId"] = JSON_Stringify(C.ControlId);
+		declare Part = "[";
+		for(I, 0, C.ControlClasses.count-1) {
+			Part ^= JSON_Stringify(C.ControlClasses[I]);
+			if (I < C.ControlClasses.count-1) Part ^= ",";
+		}
+		Fields["ControlClasses"] = Part ^ "]";
+		Fields["Size"] = JSON_Stringify(C.Size);
+		Fields["HorizontalAlign"] = JSON_Stringify(C.HorizontalAlign);
+		Fields["VerticalAlign"] = JSON_Stringify(C.VerticalAlign);
+		Fields["Visible"] = JSON_Stringify(C.Visible);
+		Fields["RelativePosition"] = JSON_Stringify(C.RelativePosition);
+		Fields["RelativeScale"] = JSON_Stringify(C.RelativeScale);
+		Fields["RelativeRotation"] = JSON_Stringify(C.RelativeRotation);
+		Fields["AbsolutePosition"] = JSON_Stringify(C.AbsolutePosition);
+		Fields["AbsoluteScale"] = JSON_Stringify(C.AbsoluteScale);
+		Fields["AbsoluteRotation"] = JSON_Stringify(C.AbsoluteRotation);
+	}
+	if (_V is CMlQuad) {
+		declare C <=> (_V as CMlQuad);
+		Fields["ImageUrl"] = JSON_Stringify(_JSON_Es(C.ImageUrl));
+		Fields["ImageUrlFocus"] = JSON_Stringify(_JSON_Es(C.ImageUrlFocus));
+		Fields["Style"] = JSON_Stringify(C.Style);
+		Fields["Substyle"] = JSON_Stringify(C.Substyle);
+		Fields["StyleSelected"] = JSON_Stringify(C.StyleSelected);
+		Fields["DownloadInProgress"] = JSON_Stringify(C.DownloadInProgress);
+		Fields["Colorize"] = JSON_Stringify(C.Colorize);
+		Fields["ModulateColor"] = JSON_Stringify(C.ModulateColor);
+		Fields["BgColor"] = JSON_Stringify(C.BgColor);
+		Fields["BgColorFocus"] = JSON_Stringify(C.BgColorFocus);
+		Fields["Opacity"] = JSON_Stringify(C.Opacity);
+		Fields["KeepRatio"] = JSON_Stringify(C.KeepRatio);
+	}
+	if (_V is CMlGauge) {
+		declare C <=> (_V as CMlGauge);
+		Fields["Style"] = JSON_Stringify(C.Style);
+		Fields["Ratio"] = JSON_Stringify(C.Ratio);
+		Fields["GradingRatio"] = JSON_Stringify(C.GradingRatio);
 		Fields["Clan"] = JSON_Stringify(C.Clan);
-		Fields["IsActive"] = JSON_Stringify(C.IsActive);
-		Fields["NumberOfCollectors"] = JSON_Stringify(C.NumberOfCollectors);
+		Fields["Color"] = JSON_Stringify(C.Color);
+		Fields["DrawBackground"] = JSON_Stringify(C.DrawBackground);
+		Fields["DrawBlockBackground"] = JSON_Stringify(C.DrawBlockBackground);
+		Fields["CenteredBar"] = JSON_Stringify(C.CenteredBar);
 	}
-	if (_V is CSmMapGauge) {
-		declare C <=> (_V as CSmMapGauge);
-		Fields["Clan"] = JSON_Stringify(C.Clan);
-		Fields["ValueReal"] = JSON_Stringify(C.ValueReal);
-		Fields["Value"] = JSON_Stringify(C.Value);
-		Fields["Max"] = JSON_Stringify(C.Max);
-		Fields["Speed"] = JSON_Stringify(C.Speed);
-		Fields["Captured"] = JSON_Stringify(C.Captured);
+	if (_V is CMlMinimap) {
+		declare C <=> (_V as CMlMinimap);
+		Fields["WorldPosition"] = JSON_Stringify(C.WorldPosition);
+		Fields["MapPosition"] = JSON_Stringify(C.MapPosition);
+		Fields["MapYaw"] = JSON_Stringify(C.MapYaw);
+		Fields["ZoomFactor"] = JSON_Stringify(C.ZoomFactor);
 	}
-	if (_V is CUILayer) {
-		declare C <=> (_V as CUILayer);
-		Fields["IsVisible"] = JSON_Stringify(C.IsVisible);
-		Fields["Type"] = JSON_Stringify(C.Type);
-		Fields["AttachId"] = JSON_Stringify(C.AttachId);
-		Fields["ManialinkPage"] = JSON_Stringify(C.ManialinkPage);
-		Fields["LocalPage"] = JSON_Stringify(C.LocalPage);
+	if (_V is CMlLabel) {
+		declare C <=> (_V as CMlLabel);
+		Fields["Style"] = JSON_Stringify(C.Style);
+		Fields["Substyle"] = JSON_Stringify(C.Substyle);
+		Fields["TextFont"] = JSON_Stringify(C.TextFont);
+		Fields["Value"] = JSON_Stringify(_JSON_Es(C.Value));
+		Fields["ValueLineCount"] = JSON_Stringify(C.ValueLineCount);
+		Fields["MaxLine"] = JSON_Stringify(C.MaxLine);
+		Fields["AppendEllipsis"] = JSON_Stringify(C.AppendEllipsis);
+		Fields["AutoNewLine"] = JSON_Stringify(C.AutoNewLine);
+		Fields["Opacity"] = JSON_Stringify(C.Opacity);
+		Fields["TextColor"] = JSON_Stringify(C.TextColor);
+		Fields["TextSize"] = JSON_Stringify(C.TextSize);
 	}
-	if (_V is CCollector) {
-		declare C <=> (_V as CCollector);
-		Fields["Name"] = JSON_Stringify(C.Name);
-		Fields["PageName"] = JSON_Stringify(C.PageName);
-	}
-	if (_V is CBlockModel) {
-		declare C <=> (_V as CBlockModel);
-		Fields["Name"] = JSON_Stringify(C.Name);
-		Fields["IsRoad"] = JSON_Stringify(C.IsRoad);
-		Fields["IsTerrain"] = JSON_Stringify(C.IsTerrain);
-		Fields["WaypointType"] = JSON_Stringify(C.WaypointType);
-		Fields["NoRespawn"] = JSON_Stringify(C.NoRespawn);
-		Fields["VariantGround"] = JSON_Stringify(C.VariantGround);
-		Fields["VariantAir"] = JSON_Stringify(C.VariantAir);
-	}
-	if (_V is CMacroblockModel) {
-		declare C <=> (_V as CMacroblockModel);
-		Fields["IsGround"] = JSON_Stringify(C.IsGround);
-		Fields["HasStart"] = JSON_Stringify(C.HasStart);
-		Fields["HasFinish"] = JSON_Stringify(C.HasFinish);
-		Fields["HasCheckpoint"] = JSON_Stringify(C.HasCheckpoint);
-		Fields["GeneratedBlockModel"] = JSON_Stringify(C.GeneratedBlockModel);
-		Fields["Name"] = JSON_Stringify(C.Name);
-	}
-	if (_V is CXmlRpc) {
-		declare C <=> (_V as CXmlRpc);
+	if (_V is CMlFrame) {
+		declare C <=> (_V as CMlFrame);
 		declare Part = "[";
-		for(I, 0, C.PendingEvents.count-1) {
-			Part ^= JSON_Stringify(C.PendingEvents[I]);
-			if (I < C.PendingEvents.count-1) Part ^= ",";
+		for(I, 0, C.Controls.count-1) {
+			Part ^= JSON_Stringify(C.Controls[I]);
+			if (I < C.Controls.count-1) Part ^= ",";
 		}
-		Fields["PendingEvents"] = Part ^ "]";
+		Fields["Controls"] = Part ^ "]";
+		Fields["ClipWindowActive"] = JSON_Stringify(C.ClipWindowActive);
+		Fields["ClipWindowRelativePosition"] = JSON_Stringify(C.ClipWindowRelativePosition);
+		Fields["ClipWindowSize"] = JSON_Stringify(C.ClipWindowSize);
 	}
-	if (_V is CUIConfigMgr) {
-		declare C <=> (_V as CUIConfigMgr);
-		Fields["UIAll"] = JSON_Stringify(C.UIAll);
+	if (_V is CMlGraph) {
+		declare C <=> (_V as CMlGraph);
+		Fields["CoordsMin"] = JSON_Stringify(C.CoordsMin);
+		Fields["CoordsMax"] = JSON_Stringify(C.CoordsMax);
 		declare Part = "[";
-		for(I, 0, C.UI.count-1) {
-			Part ^= JSON_Stringify(C.UI[I]);
-			if (I < C.UI.count-1) Part ^= ",";
+		for(I, 0, C.Curves.count-1) {
+			Part ^= JSON_Stringify(C.Curves[I]);
+			if (I < C.Curves.count-1) Part ^= ",";
 		}
-		Fields["UI"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.UILayers.count-1) {
-			Part ^= JSON_Stringify(C.UILayers[I]);
-			if (I < C.UILayers.count-1) Part ^= ",";
-		}
-		Fields["UILayers"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.UIReplayLayers.count-1) {
-			Part ^= JSON_Stringify(C.UIReplayLayers[I]);
-			if (I < C.UIReplayLayers.count-1) Part ^= ",";
-		}
-		Fields["UIReplayLayers"] = Part ^ "]";
-		Fields["UISequenceMaxDuration"] = JSON_Stringify(C.UISequenceMaxDuration);
+		Fields["Curves"] = Part ^ "]";
 	}
-	if (_V is CHttpManager) {
-		declare C <=> (_V as CHttpManager);
-		declare Part = "[";
-		for(I, 0, C.Requests.count-1) {
-			Part ^= JSON_Stringify(C.Requests[I]);
-			if (I < C.Requests.count-1) Part ^= ",";
-		}
-		Fields["Requests"] = Part ^ "]";
-		Fields["SlotsAvailable"] = JSON_Stringify(C.SlotsAvailable);
+	if (_V is CMlEntry) {
+		declare C <=> (_V as CMlEntry);
+		Fields["Value"] = JSON_Stringify(_JSON_Es(C.Value));
+		Fields["MaxLine"] = JSON_Stringify(C.MaxLine);
+		Fields["AutoNewLine"] = JSON_Stringify(C.AutoNewLine);
 	}
-	if (_V is CTmResult) {
-		declare C <=> (_V as CTmResult);
-		Fields["Time"] = JSON_Stringify(C.Time);
-		Fields["StuntsScore"] = JSON_Stringify(C.StuntsScore);
-		Fields["NbRespawns"] = JSON_Stringify(C.NbRespawns);
-		declare Part = "[";
-		for(I, 0, C.Checkpoints.count-1) {
-			Part ^= JSON_Stringify(C.Checkpoints[I]);
-			if (I < C.Checkpoints.count-1) Part ^= ",";
-		}
-		Fields["Checkpoints"] = Part ^ "]";
+	if (_V is CMlFileEntry) {
+		declare C <=> (_V as CMlFileEntry);
+		Fields["FullFileName"] = JSON_Stringify(C.FullFileName);
 	}
-	if (_V is CSmLandmark) {
-		declare C <=> (_V as CSmLandmark);
+	if (_V is CSmMapLandmark) {
+		declare C <=> (_V as CSmMapLandmark);
 		Fields["Tag"] = JSON_Stringify(C.Tag);
 		Fields["Order"] = JSON_Stringify(C.Order);
 		Fields["Position"] = JSON_Stringify(C.Position);
-		Fields["DirFront"] = JSON_Stringify(C.DirFront);
-	}
-	if (_V is CSmBlock) {
-		declare C <=> (_V as CSmBlock);
 		Fields["Base"] = JSON_Stringify(C.Base);
-	}
-	if (_V is CSmBlockPole) {
-		declare C <=> (_V as CSmBlockPole);
-		Fields["Captured"] = JSON_Stringify(C.Captured);
-		Fields["Sector"] = JSON_Stringify(C.Sector);
+		Fields["Gate"] = JSON_Stringify(C.Gate);
 		Fields["Gauge"] = JSON_Stringify(C.Gauge);
-	}
-	if (_V is CSmMapBotPath) {
-		declare C <=> (_V as CSmMapBotPath);
-		Fields["Clan"] = JSON_Stringify(C.Clan);
-		declare Part = "[";
-		for(I, 0, C.Path.count-1) {
-			Part ^= JSON_Stringify(C.Path[I]);
-			if (I < C.Path.count-1) Part ^= ",";
-		}
-		Fields["Path"] = Part ^ "]";
-		Fields["IsFlying"] = JSON_Stringify(C.IsFlying);
-	}
-	if (_V is CUIConfig) {
-		declare C <=> (_V as CUIConfig);
-		Fields["UISequence"] = JSON_Stringify(C.UISequence);
-		Fields["UISequenceIsCompleted"] = JSON_Stringify(C.UISequenceIsCompleted);
-		Fields["UISequence_CustomMTClip"] = JSON_Stringify(C.UISequence_CustomMTClip);
-		Fields["UISequence_CustomMTRefTime"] = JSON_Stringify(C.UISequence_CustomMTRefTime);
-		Fields["UISequence_CanSkipIntroMT"] = JSON_Stringify(C.UISequence_CanSkipIntroMT);
-		Fields["UISequence_PodiumPlayersWin"] = JSON_Stringify(C.UISequence_PodiumPlayersWin);
-		Fields["UISequence_PodiumPlayersLose"] = JSON_Stringify(C.UISequence_PodiumPlayersLose);
-		Fields["ManialinkPage"] = JSON_Stringify(C.ManialinkPage);
-		Fields["BigMessage"] = JSON_Stringify(C.BigMessage);
-		Fields["BigMessageAvatarLogin"] = JSON_Stringify(C.BigMessageAvatarLogin);
-		Fields["BigMessageAvatarVariant"] = JSON_Stringify(C.BigMessageAvatarVariant);
-		Fields["BigMessageSound"] = JSON_Stringify(C.BigMessageSound);
-		Fields["BigMessageSoundVariant"] = JSON_Stringify(C.BigMessageSoundVariant);
-		Fields["StatusMessage"] = JSON_Stringify(C.StatusMessage);
-		Fields["GaugeMessage"] = JSON_Stringify(C.GaugeMessage);
-		Fields["GaugeRatio"] = JSON_Stringify(C.GaugeRatio);
-		Fields["GaugeClan"] = JSON_Stringify(C.GaugeClan);
-		Fields["MarkersXML"] = JSON_Stringify(C.MarkersXML);
-		declare Part = "[";
-		for(I, 0, C.UILayers.count-1) {
-			Part ^= JSON_Stringify(C.UILayers[I]);
-			if (I < C.UILayers.count-1) Part ^= ",";
-		}
-		Fields["UILayers"] = Part ^ "]";
-		Fields["OverlayHideNotices"] = JSON_Stringify(C.OverlayHideNotices);
-		Fields["OverlayHideMapInfo"] = JSON_Stringify(C.OverlayHideMapInfo);
-		Fields["OverlayHideOpponentsInfo"] = JSON_Stringify(C.OverlayHideOpponentsInfo);
-		Fields["OverlayHideChat"] = JSON_Stringify(C.OverlayHideChat);
-		Fields["OverlayHideCheckPointList"] = JSON_Stringify(C.OverlayHideCheckPointList);
-		Fields["OverlayHideRoundScores"] = JSON_Stringify(C.OverlayHideRoundScores);
-		Fields["OverlayHideCountdown"] = JSON_Stringify(C.OverlayHideCountdown);
-		Fields["OverlayHideCrosshair"] = JSON_Stringify(C.OverlayHideCrosshair);
-		Fields["OverlayHideGauges"] = JSON_Stringify(C.OverlayHideGauges);
-		Fields["OverlayHideConsumables"] = JSON_Stringify(C.OverlayHideConsumables);
-		Fields["OverlayHide321Go"] = JSON_Stringify(C.OverlayHide321Go);
-		Fields["OverlayHideBackground"] = JSON_Stringify(C.OverlayHideBackground);
-		Fields["OverlayHideChrono"] = JSON_Stringify(C.OverlayHideChrono);
-		Fields["OverlayHideSpeedAndDist"] = JSON_Stringify(C.OverlayHideSpeedAndDist);
-		Fields["OverlayHidePersonnalBestAndRank"] = JSON_Stringify(C.OverlayHidePersonnalBestAndRank);
-		Fields["OverlayHidePosition"] = JSON_Stringify(C.OverlayHidePosition);
-		Fields["OverlayHideCheckPointTime"] = JSON_Stringify(C.OverlayHideCheckPointTime);
-		Fields["OverlayHideEndMapLadderRecap"] = JSON_Stringify(C.OverlayHideEndMapLadderRecap);
-		Fields["OverlayHideMultilapInfos"] = JSON_Stringify(C.OverlayHideMultilapInfos);
-		Fields["OverlayHideSpectatorControllers"] = JSON_Stringify(C.OverlayHideSpectatorControllers);
-		Fields["OverlayHideSpectatorInfos"] = JSON_Stringify(C.OverlayHideSpectatorInfos);
-		Fields["OverlayChatHideAvatar"] = JSON_Stringify(C.OverlayChatHideAvatar);
-		Fields["OverlayChatLineCount"] = JSON_Stringify(C.OverlayChatLineCount);
-		Fields["OverlayChatOffset"] = JSON_Stringify(C.OverlayChatOffset);
-		Fields["CountdownCoord"] = JSON_Stringify(C.CountdownCoord);
-		Fields["NoticesFilter_HidePlayerInfo"] = JSON_Stringify(C.NoticesFilter_HidePlayerInfo);
-		Fields["NoticesFilter_HidePlayerWarning"] = JSON_Stringify(C.NoticesFilter_HidePlayerWarning);
-		Fields["NoticesFilter_HidePlayerInfoIfNotMe"] = JSON_Stringify(C.NoticesFilter_HidePlayerInfoIfNotMe);
-		Fields["NoticesFilter_HidePlayerWarningIfNotMe"] = JSON_Stringify(C.NoticesFilter_HidePlayerWarningIfNotMe);
-		Fields["NoticesFilter_HideMapInfo"] = JSON_Stringify(C.NoticesFilter_HideMapInfo);
-		Fields["NoticesFilter_HideMapWarning"] = JSON_Stringify(C.NoticesFilter_HideMapWarning);
-		Fields["NoticesFilter_HideMatchInfo"] = JSON_Stringify(C.NoticesFilter_HideMatchInfo);
-		Fields["NoticesFilter_HideMatchWarning"] = JSON_Stringify(C.NoticesFilter_HideMatchWarning);
-		Fields["NoticesFilter_LevelToShowAsBigMessage"] = JSON_Stringify(C.NoticesFilter_LevelToShowAsBigMessage);
-		Fields["ScoreTable"] = JSON_Stringify(C.ScoreTable);
-		Fields["ScoreTableVisibility"] = JSON_Stringify(C.ScoreTableVisibility);
-		Fields["SmallScoreTable"] = JSON_Stringify(C.SmallScoreTable);
-		Fields["SmallScoreTableVisibility"] = JSON_Stringify(C.SmallScoreTableVisibility);
-		Fields["ScoreTableOnlyManialink"] = JSON_Stringify(C.ScoreTableOnlyManialink);
-		Fields["AltMenuNoDefaultScores"] = JSON_Stringify(C.AltMenuNoDefaultScores);
-		Fields["AltMenuNoCustomScores"] = JSON_Stringify(C.AltMenuNoCustomScores);
-		Fields["OverlayScoreSummary"] = JSON_Stringify(C.OverlayScoreSummary);
-		Fields["ScoreSummary_Player1"] = JSON_Stringify(C.ScoreSummary_Player1);
-		Fields["ScoreSummary_Points1"] = JSON_Stringify(C.ScoreSummary_Points1);
-		Fields["ScoreSummary_RoundPoints1"] = JSON_Stringify(C.ScoreSummary_RoundPoints1);
-		Fields["ScoreSummary_MatchPoints1"] = JSON_Stringify(C.ScoreSummary_MatchPoints1);
-		Fields["ScoreSummary_Gauge1"] = JSON_Stringify(C.ScoreSummary_Gauge1);
-		Fields["ScoreSummary_Player2"] = JSON_Stringify(C.ScoreSummary_Player2);
-		Fields["ScoreSummary_Points2"] = JSON_Stringify(C.ScoreSummary_Points2);
-		Fields["ScoreSummary_RoundPoints2"] = JSON_Stringify(C.ScoreSummary_RoundPoints2);
-		Fields["ScoreSummary_MatchPoints2"] = JSON_Stringify(C.ScoreSummary_MatchPoints2);
-		Fields["ScoreSummary_Gauge2"] = JSON_Stringify(C.ScoreSummary_Gauge2);
-		Fields["ScreenIn3dHideScoreSummary"] = JSON_Stringify(C.ScreenIn3dHideScoreSummary);
-		Fields["ScreenIn3dHideVersus"] = JSON_Stringify(C.ScreenIn3dHideVersus);
-		Fields["CountdownEndTime"] = JSON_Stringify(C.CountdownEndTime);
-		Fields["UIStatus"] = JSON_Stringify(C.UIStatus);
-		Fields["AlliesLabelsVisibility"] = JSON_Stringify(C.AlliesLabelsVisibility);
-		Fields["AlliesLabelsShowGauges"] = JSON_Stringify(C.AlliesLabelsShowGauges);
-		Fields["AlliesLabelsShowNames"] = JSON_Stringify(C.AlliesLabelsShowNames);
-		Fields["AlliesLabelsMaxCount"] = JSON_Stringify(C.AlliesLabelsMaxCount);
-		Fields["TeamLabelsVisibility"] = JSON_Stringify(C.TeamLabelsVisibility);
-		Fields["TeamLabelsShowGauges"] = JSON_Stringify(C.TeamLabelsShowGauges);
-		Fields["TeamLabelsShowNames"] = JSON_Stringify(C.TeamLabelsShowNames);
-		Fields["OpposingTeamLabelsVisibility"] = JSON_Stringify(C.OpposingTeamLabelsVisibility);
-		Fields["OpposingTeamLabelsShowGauges"] = JSON_Stringify(C.OpposingTeamLabelsShowGauges);
-		Fields["OpposingTeamLabelsShowNames"] = JSON_Stringify(C.OpposingTeamLabelsShowNames);
-		Fields["ForceSpectator"] = JSON_Stringify(C.ForceSpectator);
-		Fields["SpectatorForceCameraType"] = JSON_Stringify(C.SpectatorForceCameraType);
-		Fields["SpectatorAutoTarget"] = JSON_Stringify(C.SpectatorAutoTarget);
-		Fields["SpectatorForcedTarget"] = JSON_Stringify(C.SpectatorForcedTarget);
-		Fields["SpectatorForcedClan"] = JSON_Stringify(C.SpectatorForcedClan);
-		Fields["SpectatorCamAutoLatitude"] = JSON_Stringify(C.SpectatorCamAutoLatitude);
-		Fields["SpectatorCamAutoLongitude"] = JSON_Stringify(C.SpectatorCamAutoLongitude);
-		Fields["SpectatorCamAutoRadius"] = JSON_Stringify(C.SpectatorCamAutoRadius);
-		Fields["SpectatorObserverMode"] = JSON_Stringify(C.SpectatorObserverMode);
-	}
-	if (_V is CXmlManager) {
-		declare C <=> (_V as CXmlManager);
-		declare Part = "[";
-		for(I, 0, C.Documents.count-1) {
-			Part ^= JSON_Stringify(C.Documents[I]);
-			if (I < C.Documents.count-1) Part ^= ",";
-		}
-		Fields["Documents"] = Part ^ "]";
-	}
-	if (_V is CHttpRequest) {
-		declare C <=> (_V as CHttpRequest);
-		Fields["Url"] = JSON_Stringify(C.Url);
-		Fields["Result"] = JSON_Stringify(C.Result);
-		Fields["StatusCode"] = JSON_Stringify(C.StatusCode);
-		Fields["IsCompleted"] = JSON_Stringify(C.IsCompleted);
-	}
-	if (_V is CSmMapGate) {
-		declare C <=> (_V as CSmMapGate);
-		Fields["Clan"] = JSON_Stringify(C.Clan);
-		Fields["Automatic"] = JSON_Stringify(C.Automatic);
-		Fields["ManualClosed"] = JSON_Stringify(C.ManualClosed);
-		Fields["AutoClosed"] = JSON_Stringify(C.AutoClosed);
-		Fields["AutoIsActive"] = JSON_Stringify(C.AutoIsActive);
-		Fields["AutoCloseDelay"] = JSON_Stringify(C.AutoCloseDelay);
-		Fields["AutoOpenSpeed"] = JSON_Stringify(C.AutoOpenSpeed);
-	}
-	if (_V is CBlockModelVariant) {
-		declare C <=> (_V as CBlockModelVariant);
-		Fields["Name"] = JSON_Stringify(C.Name);
-		Fields["IsAllUnderground"] = JSON_Stringify(C.IsAllUnderground);
-		Fields["IsPartUnderground"] = JSON_Stringify(C.IsPartUnderground);
-		Fields["Size"] = JSON_Stringify(C.Size);
-		Fields["OffsetBoundingBoxMin"] = JSON_Stringify(C.OffsetBoundingBoxMin);
-		Fields["OffsetBoundingBoxMax"] = JSON_Stringify(C.OffsetBoundingBoxMax);
-		declare Part = "[";
-		for(I, 0, C.BlockUnitModels.count-1) {
-			Part ^= JSON_Stringify(C.BlockUnitModels[I]);
-			if (I < C.BlockUnitModels.count-1) Part ^= ",";
-		}
-		Fields["BlockUnitModels"] = Part ^ "]";
-	}
-	if (_V is CMapInfo) {
-		declare C <=> (_V as CMapInfo);
-		Fields["MapUid"] = JSON_Stringify(C.MapUid);
-		Fields["Comments"] = JSON_Stringify(C.Comments);
-		Fields["CopperPrice"] = JSON_Stringify(C.CopperPrice);
-		Fields["CollectionName"] = JSON_Stringify(C.CollectionName);
-		Fields["AuthorLogin"] = JSON_Stringify(C.AuthorLogin);
-		Fields["AuthorNickName"] = JSON_Stringify(C.AuthorNickName);
-		Fields["AuthorZonePath"] = JSON_Stringify(C.AuthorZonePath);
-		Fields["MapType"] = JSON_Stringify(C.MapType);
-		Fields["MapStyle"] = JSON_Stringify(C.MapStyle);
-		Fields["Unlocked"] = JSON_Stringify(C.Unlocked);
-		Fields["Name"] = JSON_Stringify(C.Name);
-		Fields["Path"] = JSON_Stringify(C.Path);
-	}
-	if (_V is CUser) {
-		declare C <=> (_V as CUser);
-		Fields["Login"] = JSON_Stringify(C.Login);
-		Fields["Name"] = JSON_Stringify(C.Name);
-		Fields["AvatarUrl"] = JSON_Stringify(C.AvatarUrl);
-		Fields["ZonePath"] = JSON_Stringify(C.ZonePath);
-		Fields["ZoneFlagUrl"] = JSON_Stringify(C.ZoneFlagUrl);
-		Fields["CountryFlagUrl"] = JSON_Stringify(C.CountryFlagUrl);
-		Fields["Language"] = JSON_Stringify(C.Language);
-		Fields["Description"] = JSON_Stringify(C.Description);
-		Fields["Color"] = JSON_Stringify(C.Color);
-		Fields["ClubLink"] = JSON_Stringify(C.ClubLink);
-		Fields["BroadcastTVLogin"] = JSON_Stringify(C.BroadcastTVLogin);
-		Fields["SteamUserId"] = JSON_Stringify(C.SteamUserId);
-		Fields["FameStars"] = JSON_Stringify(C.FameStars);
-		Fields["Echelon"] = JSON_Stringify(C.Echelon);
-		Fields["IsBeginner"] = JSON_Stringify(C.IsBeginner);
-		Fields["LadderRank"] = JSON_Stringify(C.LadderRank);
-		Fields["LadderTotal"] = JSON_Stringify(C.LadderTotal);
-		Fields["LadderPoints"] = JSON_Stringify(C.LadderPoints);
-		Fields["LadderZoneName"] = JSON_Stringify(C.LadderZoneName);
-		Fields["LadderZoneFlagUrl"] = JSON_Stringify(C.LadderZoneFlagUrl);
-		Fields["RequestedClan"] = JSON_Stringify(C.RequestedClan);
-		Fields["RequestsSpectate"] = JSON_Stringify(C.RequestsSpectate);
-		Fields["IsFakeUser"] = JSON_Stringify(C.IsFakeUser);
-		declare Part = "[";
-		for(I, 0, C.Tags_Favored_Indices.count-1) {
-			Part ^= JSON_Stringify(C.Tags_Favored_Indices[I]);
-			if (I < C.Tags_Favored_Indices.count-1) Part ^= ",";
-		}
-		Fields["Tags_Favored_Indices"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.Tags_Id.count-1) {
-			Part ^= JSON_Stringify(C.Tags_Id[I]);
-			if (I < C.Tags_Id.count-1) Part ^= ",";
-		}
-		Fields["Tags_Id"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.Tags_Type.count-1) {
-			Part ^= JSON_Stringify(C.Tags_Type[I]);
-			if (I < C.Tags_Type.count-1) Part ^= ",";
-		}
-		Fields["Tags_Type"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.Tags_Comments.count-1) {
-			Part ^= JSON_Stringify(C.Tags_Comments[I]);
-			if (I < C.Tags_Comments.count-1) Part ^= ",";
-		}
-		Fields["Tags_Comments"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.Tags_Deliverer.count-1) {
-			Part ^= JSON_Stringify(C.Tags_Deliverer[I]);
-			if (I < C.Tags_Deliverer.count-1) Part ^= ",";
-		}
-		Fields["Tags_Deliverer"] = Part ^ "]";
-		Part = "[";
-		for(I, 0, C.AlliesConnected.count-1) {
-			Part ^= JSON_Stringify(C.AlliesConnected[I]);
-			if (I < C.AlliesConnected.count-1) Part ^= ",";
-		}
-		Fields["AlliesConnected"] = Part ^ "]";
-		Fields["StereoDisplayMode"] = JSON_Stringify(C.StereoDisplayMode);
-	}
-	if (_V is CMlEvent) {
-		declare C <=> (_V as CMlEvent);
-		Fields["Type"] = JSON_Stringify(C.Type);
-		Fields["KeyCode"] = JSON_Stringify(C.KeyCode);
-		Fields["KeyName"] = JSON_Stringify(C.KeyName);
-		Fields["CharPressed"] = JSON_Stringify(C.CharPressed);
-		Fields["ControlId"] = JSON_Stringify(C.ControlId);
-		Fields["Control"] = JSON_Stringify(C.Control);
-		Fields["MenuNavAction"] = JSON_Stringify(C.MenuNavAction);
-		Fields["CustomEventType"] = JSON_Stringify(C.CustomEventType);
-		declare Part = "[";
-		for(I, 0, C.CustomEventData.count-1) {
-			Part ^= JSON_Stringify(C.CustomEventData[I]);
-			if (I < C.CustomEventData.count-1) Part ^= ",";
-		}
-		Fields["CustomEventData"] = Part ^ "]";
-	}
-	if (_V is CTitle) {
-		declare C <=> (_V as CTitle);
-		Fields["TitleId"] = JSON_Stringify(C.TitleId);
-		Fields["BaseTitleId"] = JSON_Stringify(C.BaseTitleId);
-		Fields["Name"] = JSON_Stringify(C.Name);
-		Fields["Desc"] = JSON_Stringify(C.Desc);
-		Fields["InfoUrl"] = JSON_Stringify(C.InfoUrl);
-		Fields["DownloadUrl"] = JSON_Stringify(C.DownloadUrl);
-		Fields["TitleVersion"] = JSON_Stringify(C.TitleVersion);
-	}
-	if (_V is CSmGauge) {
-		declare C <=> (_V as CSmGauge);
-		Fields["Clan"] = JSON_Stringify(C.Clan);
-		Fields["ValueReal"] = JSON_Stringify(C.ValueReal);
-		Fields["Value"] = JSON_Stringify(C.Value);
-		Fields["Max"] = JSON_Stringify(C.Max);
-		Fields["Speed"] = JSON_Stringify(C.Speed);
-	}
-	if (_V is CSmBase) {
-		declare C <=> (_V as CSmBase);
-		Fields["Clan"] = JSON_Stringify(C.Clan);
-		Fields["IsActive"] = JSON_Stringify(C.IsActive);
-		Fields["NumberOfCollectors"] = JSON_Stringify(C.NumberOfCollectors);
-	}
-	if (_V is CXmlRpcEvent) {
-		declare C <=> (_V as CXmlRpcEvent);
-		Fields["Type"] = JSON_Stringify(C.Type);
-		Fields["Param1"] = JSON_Stringify(C.Param1);
-		Fields["Param2"] = JSON_Stringify(C.Param2);
-		Fields["ParamArray1"] = JSON_Stringify(C.ParamArray1);
-		declare Part = "[";
-		for(I, 0, C.ParamArray2.count-1) {
-			Part ^= JSON_Stringify(C.ParamArray2[I]);
-			if (I < C.ParamArray2.count-1) Part ^= ",";
-		}
-		Fields["ParamArray2"] = Part ^ "]";
-	}
-	if (_V is CSmObject) {
-		declare C <=> (_V as CSmObject);
-		Fields["Status"] = JSON_Stringify(C.Status);
-		Fields["ModelId"] = JSON_Stringify(C.ModelId);
-		Fields["Player"] = JSON_Stringify(C.Player);
-		Fields["Position"] = JSON_Stringify(C.Position);
-		Fields["Vel"] = JSON_Stringify(C.Vel);
-		Fields["MachineState"] = JSON_Stringify(C.MachineState);
-		Fields["Throwable"] = JSON_Stringify(C.Throwable);
-	}
-	if (_V is CXmlNode) {
-		declare C <=> (_V as CXmlNode);
-		Fields["Name"] = JSON_Stringify(C.Name);
-		Fields["TextContents"] = JSON_Stringify(C.TextContents);
-		Fields["TextRawContents"] = JSON_Stringify(C.TextRawContents);
-		Fields["TextRecursiveContents"] = JSON_Stringify(C.TextRecursiveContents);
-		declare Part = "[";
-		for(I, 0, C.Children.count-1) {
-			Part ^= JSON_Stringify(C.Children[I]);
-			if (I < C.Children.count-1) Part ^= ",";
-		}
-		Fields["Children"] = Part ^ "]";
-	}
-	if (_V is CSmActionEvent) {
-		declare C <=> (_V as CSmActionEvent);
-		Fields["Type"] = JSON_Stringify(C.Type);
-		Fields["Player"] = JSON_Stringify(C.Player);
-		Fields["Damage"] = JSON_Stringify(C.Damage);
-		Fields["ProjectileModelId"] = JSON_Stringify(C.ProjectileModelId);
-		Fields["ContextId"] = JSON_Stringify(C.ContextId);
-		Fields["Position"] = JSON_Stringify(C.Position);
-		Fields["Direction"] = JSON_Stringify(C.Direction);
-		Fields["Normal"] = JSON_Stringify(C.Normal);
+		Fields["Sector"] = JSON_Stringify(C.Sector);
+		Fields["PlayerSpawn"] = JSON_Stringify(C.PlayerSpawn);
+		Fields["BotPath"] = JSON_Stringify(C.BotPath);
+		Fields["ObjectAnchor"] = JSON_Stringify(C.ObjectAnchor);
 	}
 	if (_V is CPlayer) {
 		declare C <=> (_V as CPlayer);
@@ -2481,16 +1744,212 @@ Text JSON_Stringify(CNod _V) {
 		Fields["ControlCoef"] = JSON_Stringify(C.ControlCoef);
 		Fields["GravityCoef"] = JSON_Stringify(C.GravityCoef);
 	}
-	if (_V is CAudioSound) {
-		declare C <=> (_V as CAudioSound);
-		Fields["IsPlaying"] = JSON_Stringify(C.IsPlaying);
-		Fields["DownloadInProgress"] = JSON_Stringify(C.DownloadInProgress);
-		Fields["Volume"] = JSON_Stringify(C.Volume);
-		Fields["VolumedB"] = JSON_Stringify(C.VolumedB);
-		Fields["Pitch"] = JSON_Stringify(C.Pitch);
-		Fields["RelativePosition"] = JSON_Stringify(C.RelativePosition);
-		Fields["PlayCursor"] = JSON_Stringify(C.PlayCursor);
-		Fields["PlayLength"] = JSON_Stringify(C.PlayLength);
+	if (_V is CSmMapGate) {
+		declare C <=> (_V as CSmMapGate);
+		Fields["Clan"] = JSON_Stringify(C.Clan);
+		Fields["Automatic"] = JSON_Stringify(C.Automatic);
+		Fields["ManualClosed"] = JSON_Stringify(C.ManualClosed);
+		Fields["AutoClosed"] = JSON_Stringify(C.AutoClosed);
+		Fields["AutoIsActive"] = JSON_Stringify(C.AutoIsActive);
+		Fields["AutoCloseDelay"] = JSON_Stringify(C.AutoCloseDelay);
+		Fields["AutoOpenSpeed"] = JSON_Stringify(C.AutoOpenSpeed);
+	}
+	if (_V is CAnchorData) {
+		declare C <=> (_V as CAnchorData);
+		Fields["DefaultTag"] = JSON_Stringify(_JSON_Es(C.DefaultTag));
+		Fields["DefaultOrder"] = JSON_Stringify(C.DefaultOrder);
+		Fields["Tag"] = JSON_Stringify(_JSON_Es(C.Tag));
+		Fields["Order"] = JSON_Stringify(C.Order);
+	}
+	if (_V is CSmPlayerDriver) {
+		declare C <=> (_V as CSmPlayerDriver);
+		Fields["Behaviour"] = JSON_Stringify(C.Behaviour);
+		Fields["AggroRadius"] = JSON_Stringify(C.AggroRadius);
+		Fields["DisengageDistance"] = JSON_Stringify(C.DisengageDistance);
+		Fields["PathSpeedCoef"] = JSON_Stringify(C.PathSpeedCoef);
+		Fields["Accuracy"] = JSON_Stringify(C.Accuracy);
+		Fields["ReactionTime"] = JSON_Stringify(C.ReactionTime);
+		Fields["ShootPeriodMin"] = JSON_Stringify(C.ShootPeriodMin);
+		Fields["ShootPeriodMax"] = JSON_Stringify(C.ShootPeriodMax);
+		Fields["RocketAnticipation"] = JSON_Stringify(C.RocketAnticipation);
+		Fields["Fov"] = JSON_Stringify(C.Fov);
+		Fields["AttackFilter"] = JSON_Stringify(C.AttackFilter);
+		Fields["Target"] = JSON_Stringify(C.Target);
+		Fields["IsStuck"] = JSON_Stringify(C.IsStuck);
+		Fields["IsFlying"] = JSON_Stringify(C.IsFlying);
+		Fields["PathOffset"] = JSON_Stringify(C.PathOffset);
+		Fields["Agressivity"] = JSON_Stringify(C.Agressivity);
+		Fields["UseOldShootingSystem"] = JSON_Stringify(C.UseOldShootingSystem);
+		Fields["Patrol_Mode"] = JSON_Stringify(C.Patrol_Mode);
+		Fields["Escape_AnchorPoint"] = JSON_Stringify(C.Escape_AnchorPoint);
+		Fields["Escape_DistanceSafe"] = JSON_Stringify(C.Escape_DistanceSafe);
+		Fields["Escape_DistanceMinEscape"] = JSON_Stringify(C.Escape_DistanceMinEscape);
+		Fields["Escape_DistanceMaxEscape"] = JSON_Stringify(C.Escape_DistanceMaxEscape);
+		Fields["Saunter_AnchorPoint"] = JSON_Stringify(C.Saunter_AnchorPoint);
+		Fields["Saunter_BaseChillingTime"] = JSON_Stringify(C.Saunter_BaseChillingTime);
+		Fields["Saunter_ChillingTimeDelta"] = JSON_Stringify(C.Saunter_ChillingTimeDelta);
+		Fields["Saunter_Radius"] = JSON_Stringify(C.Saunter_Radius);
+		Fields["Scripted_ForceAimInMoveDir"] = JSON_Stringify(C.Scripted_ForceAimInMoveDir);
+		Fields["ForcedTarget"] = JSON_Stringify(C.ForcedTarget);
+		declare Part = "[";
+		for(I, 0, C.TargetsToAvoid.count-1) {
+			Part ^= JSON_Stringify(C.TargetsToAvoid[I]);
+			if (I < C.TargetsToAvoid.count-1) Part ^= ",";
+		}
+		Fields["TargetsToAvoid"] = Part ^ "]";
+	}
+	if (_V is CMlEvent) {
+		declare C <=> (_V as CMlEvent);
+		Fields["Type"] = JSON_Stringify(C.Type);
+		Fields["KeyCode"] = JSON_Stringify(C.KeyCode);
+		Fields["KeyName"] = JSON_Stringify(C.KeyName);
+		Fields["CharPressed"] = JSON_Stringify(C.CharPressed);
+		Fields["ControlId"] = JSON_Stringify(C.ControlId);
+		Fields["Control"] = JSON_Stringify(C.Control);
+		Fields["MenuNavAction"] = JSON_Stringify(C.MenuNavAction);
+		Fields["CustomEventType"] = JSON_Stringify(C.CustomEventType);
+		declare Part = "[";
+		for(I, 0, C.CustomEventData.count-1) {
+			Part ^= JSON_Stringify(_JSON_Es(C.CustomEventData[I]));
+			if (I < C.CustomEventData.count-1) Part ^= ",";
+		}
+		Fields["CustomEventData"] = Part ^ "]";
+	}
+	if (_V is CHttpManager) {
+		declare C <=> (_V as CHttpManager);
+		declare Part = "[";
+		for(I, 0, C.Requests.count-1) {
+			Part ^= JSON_Stringify(C.Requests[I]);
+			if (I < C.Requests.count-1) Part ^= ",";
+		}
+		Fields["Requests"] = Part ^ "]";
+		Fields["SlotsAvailable"] = JSON_Stringify(C.SlotsAvailable);
+	}
+	if (_V is CAudioManager) {
+		declare C <=> (_V as CAudioManager);
+		declare Part = "[";
+		for(I, 0, C.Sounds.count-1) {
+			Part ^= JSON_Stringify(C.Sounds[I]);
+			if (I < C.Sounds.count-1) Part ^= ",";
+		}
+		Fields["Sounds"] = Part ^ "]";
+		Fields["ForceEnableMusic"] = JSON_Stringify(C.ForceEnableMusic);
+		Fields["LimitMusicVolumedB"] = JSON_Stringify(C.LimitMusicVolumedB);
+	}
+	if (_V is CMlPage) {
+		declare C <=> (_V as CMlPage);
+		Fields["MainFrame"] = JSON_Stringify(C.MainFrame);
+		Fields["LinksInhibited"] = JSON_Stringify(C.LinksInhibited);
+		declare Part = "[";
+		for(I, 0, C.GetClassChildren_Result.count-1) {
+			Part ^= JSON_Stringify(C.GetClassChildren_Result[I]);
+			if (I < C.GetClassChildren_Result.count-1) Part ^= ",";
+		}
+		Fields["GetClassChildren_Result"] = Part ^ "]";
+	}
+	if (_V is CMap) {
+		declare C <=> (_V as CMap);
+		Fields["MapInfo"] = JSON_Stringify(C.MapInfo);
+		Fields["MapName"] = JSON_Stringify(_JSON_Es(C.MapName));
+		Fields["Comments"] = JSON_Stringify(_JSON_Es(C.Comments));
+		Fields["AuthorZoneIconUrl"] = JSON_Stringify(C.AuthorZoneIconUrl);
+		Fields["CollectionName"] = JSON_Stringify(C.CollectionName);
+		Fields["DecorationName"] = JSON_Stringify(C.DecorationName);
+		Fields["AuthorLogin"] = JSON_Stringify(C.AuthorLogin);
+		Fields["AuthorNickName"] = JSON_Stringify(_JSON_Es(C.AuthorNickName));
+		Fields["AuthorZonePath"] = JSON_Stringify(C.AuthorZonePath);
+		Fields["MapType"] = JSON_Stringify(C.MapType);
+		Fields["MapStyle"] = JSON_Stringify(C.MapStyle);
+		Fields["TMObjective_AuthorTime"] = JSON_Stringify(C.TMObjective_AuthorTime);
+		Fields["TMObjective_GoldTime"] = JSON_Stringify(C.TMObjective_GoldTime);
+		Fields["TMObjective_SilverTime"] = JSON_Stringify(C.TMObjective_SilverTime);
+		Fields["TMObjective_BronzeTime"] = JSON_Stringify(C.TMObjective_BronzeTime);
+		Fields["TMObjective_NbLaps"] = JSON_Stringify(C.TMObjective_NbLaps);
+		Fields["TMObjective_IsLapRace"] = JSON_Stringify(C.TMObjective_IsLapRace);
+		Fields["ObjectiveTextAuthor"] = JSON_Stringify(_JSON_Es(C.ObjectiveTextAuthor));
+		Fields["ObjectiveTextGold"] = JSON_Stringify(C.ObjectiveTextGold);
+		Fields["ObjectiveTextSilver"] = JSON_Stringify(C.ObjectiveTextSilver);
+		Fields["ObjectiveTextBronze"] = JSON_Stringify(C.ObjectiveTextBronze);
+		Fields["CopperPrice"] = JSON_Stringify(C.CopperPrice);
+		Fields["Size"] = JSON_Stringify(C.Size);
+	}
+	if (_V is CSmMapBotPath) {
+		declare C <=> (_V as CSmMapBotPath);
+		Fields["Clan"] = JSON_Stringify(C.Clan);
+		declare Part = "[";
+		for(I, 0, C.Path.count-1) {
+			Part ^= JSON_Stringify(C.Path[I]);
+			if (I < C.Path.count-1) Part ^= ",";
+		}
+		Fields["Path"] = Part ^ "]";
+		Fields["IsFlying"] = JSON_Stringify(C.IsFlying);
+	}
+	if (_V is CBlockUnit) {
+		declare C <=> (_V as CBlockUnit);
+		Fields["Offset"] = JSON_Stringify(C.Offset);
+		Fields["BlockUnitModel"] = JSON_Stringify(C.BlockUnitModel);
+		Fields["Block"] = JSON_Stringify(C.Block);
+	}
+	if (_V is CSmSector) {
+		declare C <=> (_V as CSmSector);
+		declare Part = "[";
+		for(I, 0, C.PlayersIds.count-1) {
+			Part ^= JSON_Stringify(C.PlayersIds[I]);
+			if (I < C.PlayersIds.count-1) Part ^= ",";
+		}
+		Fields["PlayersIds"] = Part ^ "]";
+	}
+	if (_V is CXmlDocument) {
+		declare C <=> (_V as CXmlDocument);
+		Fields["Root"] = JSON_Stringify(C.Root);
+		declare Part = "[";
+		for(I, 0, C.Nodes.count-1) {
+			Part ^= JSON_Stringify(C.Nodes[I]);
+			if (I < C.Nodes.count-1) Part ^= ",";
+		}
+		Fields["Nodes"] = Part ^ "]";
+	}
+	if (_V is CUIConfigMgr) {
+		declare C <=> (_V as CUIConfigMgr);
+		Fields["UIAll"] = JSON_Stringify(C.UIAll);
+		declare Part = "[";
+		for(I, 0, C.UI.count-1) {
+			Part ^= JSON_Stringify(C.UI[I]);
+			if (I < C.UI.count-1) Part ^= ",";
+		}
+		Fields["UI"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.UILayers.count-1) {
+			Part ^= JSON_Stringify(C.UILayers[I]);
+			if (I < C.UILayers.count-1) Part ^= ",";
+		}
+		Fields["UILayers"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.UIReplayLayers.count-1) {
+			Part ^= JSON_Stringify(C.UIReplayLayers[I]);
+			if (I < C.UIReplayLayers.count-1) Part ^= ",";
+		}
+		Fields["UIReplayLayers"] = Part ^ "]";
+		Fields["UISequenceMaxDuration"] = JSON_Stringify(C.UISequenceMaxDuration);
+	}
+	if (_V is CSmMapGauge) {
+		declare C <=> (_V as CSmMapGauge);
+		Fields["Clan"] = JSON_Stringify(C.Clan);
+		Fields["ValueReal"] = JSON_Stringify(C.ValueReal);
+		Fields["Value"] = JSON_Stringify(C.Value);
+		Fields["Max"] = JSON_Stringify(C.Max);
+		Fields["Speed"] = JSON_Stringify(C.Speed);
+		Fields["Captured"] = JSON_Stringify(C.Captured);
+	}
+	if (_V is CStation) {
+		declare C <=> (_V as CStation);
+		Fields["Title"] = JSON_Stringify(C.Title);
+		Fields["AudienceRegisteredUsers"] = JSON_Stringify(C.AudienceRegisteredUsers);
+		Fields["CampaignMedalsMax"] = JSON_Stringify(C.CampaignMedalsMax);
+		Fields["CampaignMedalsCurrent"] = JSON_Stringify(C.CampaignMedalsCurrent);
+		Fields["CampaignMedalsRanking"] = JSON_Stringify(C.CampaignMedalsRanking);
+		Fields["LadderPoints"] = JSON_Stringify(C.LadderPoints);
+		Fields["LadderRank"] = JSON_Stringify(C.LadderRank);
 	}
 	if (_V is CBlock) {
 		declare C <=> (_V as CBlock);
@@ -2505,27 +1964,6 @@ Text JSON_Stringify(CNod _V) {
 		}
 		Fields["BlockUnits"] = Part ^ "]";
 		Fields["BlockModel"] = JSON_Stringify(C.BlockModel);
-	}
-	if (_V is CBlockUnitModel) {
-		declare C <=> (_V as CBlockUnitModel);
-		Fields["Offset"] = JSON_Stringify(C.Offset);
-		declare Part = "[";
-		for(I, 0, C.Clips.count-1) {
-			Part ^= JSON_Stringify(C.Clips[I]);
-			if (I < C.Clips.count-1) Part ^= ",";
-		}
-		Fields["Clips"] = Part ^ "]";
-	}
-	if (_V is CAudioManager) {
-		declare C <=> (_V as CAudioManager);
-		declare Part = "[";
-		for(I, 0, C.Sounds.count-1) {
-			Part ^= JSON_Stringify(C.Sounds[I]);
-			if (I < C.Sounds.count-1) Part ^= ",";
-		}
-		Fields["Sounds"] = Part ^ "]";
-		Fields["ForceEnableMusic"] = JSON_Stringify(C.ForceEnableMusic);
-		Fields["LimitMusicVolumedB"] = JSON_Stringify(C.LimitMusicVolumedB);
 	}
 	if (_V is CSmModeEvent) {
 		declare C <=> (_V as CSmModeEvent);
@@ -2575,42 +2013,423 @@ Text JSON_Stringify(CNod _V) {
 		Fields["CommandValueText"] = JSON_Stringify(C.CommandValueText);
 		Fields["ActionChange"] = JSON_Stringify(C.ActionChange);
 	}
-	if (_V is CSmPlayerDriver) {
-		declare C <=> (_V as CSmPlayerDriver);
-		Fields["Behaviour"] = JSON_Stringify(C.Behaviour);
-		Fields["AggroRadius"] = JSON_Stringify(C.AggroRadius);
-		Fields["DisengageDistance"] = JSON_Stringify(C.DisengageDistance);
-		Fields["PathSpeedCoef"] = JSON_Stringify(C.PathSpeedCoef);
-		Fields["Accuracy"] = JSON_Stringify(C.Accuracy);
-		Fields["ReactionTime"] = JSON_Stringify(C.ReactionTime);
-		Fields["ShootPeriodMin"] = JSON_Stringify(C.ShootPeriodMin);
-		Fields["ShootPeriodMax"] = JSON_Stringify(C.ShootPeriodMax);
-		Fields["RocketAnticipation"] = JSON_Stringify(C.RocketAnticipation);
-		Fields["Fov"] = JSON_Stringify(C.Fov);
-		Fields["AttackFilter"] = JSON_Stringify(C.AttackFilter);
-		Fields["Target"] = JSON_Stringify(C.Target);
-		Fields["IsStuck"] = JSON_Stringify(C.IsStuck);
-		Fields["IsFlying"] = JSON_Stringify(C.IsFlying);
-		Fields["PathOffset"] = JSON_Stringify(C.PathOffset);
-		Fields["Agressivity"] = JSON_Stringify(C.Agressivity);
-		Fields["UseOldShootingSystem"] = JSON_Stringify(C.UseOldShootingSystem);
-		Fields["Patrol_Mode"] = JSON_Stringify(C.Patrol_Mode);
-		Fields["Escape_AnchorPoint"] = JSON_Stringify(C.Escape_AnchorPoint);
-		Fields["Escape_DistanceSafe"] = JSON_Stringify(C.Escape_DistanceSafe);
-		Fields["Escape_DistanceMinEscape"] = JSON_Stringify(C.Escape_DistanceMinEscape);
-		Fields["Escape_DistanceMaxEscape"] = JSON_Stringify(C.Escape_DistanceMaxEscape);
-		Fields["Saunter_AnchorPoint"] = JSON_Stringify(C.Saunter_AnchorPoint);
-		Fields["Saunter_BaseChillingTime"] = JSON_Stringify(C.Saunter_BaseChillingTime);
-		Fields["Saunter_ChillingTimeDelta"] = JSON_Stringify(C.Saunter_ChillingTimeDelta);
-		Fields["Saunter_Radius"] = JSON_Stringify(C.Saunter_Radius);
-		Fields["Scripted_ForceAimInMoveDir"] = JSON_Stringify(C.Scripted_ForceAimInMoveDir);
-		Fields["ForcedTarget"] = JSON_Stringify(C.ForcedTarget);
+	if (_V is CCollector) {
+		declare C <=> (_V as CCollector);
+		Fields["Name"] = JSON_Stringify(C.Name);
+		Fields["PageName"] = JSON_Stringify(C.PageName);
+	}
+	if (_V is CMacroblockModel) {
+		declare C <=> (_V as CMacroblockModel);
+		Fields["IsGround"] = JSON_Stringify(C.IsGround);
+		Fields["HasStart"] = JSON_Stringify(C.HasStart);
+		Fields["HasFinish"] = JSON_Stringify(C.HasFinish);
+		Fields["HasCheckpoint"] = JSON_Stringify(C.HasCheckpoint);
+		Fields["GeneratedBlockModel"] = JSON_Stringify(C.GeneratedBlockModel);
+		Fields["Name"] = JSON_Stringify(C.Name);
+	}
+	if (_V is CBlockModel) {
+		declare C <=> (_V as CBlockModel);
+		Fields["Name"] = JSON_Stringify(C.Name);
+		Fields["IsRoad"] = JSON_Stringify(C.IsRoad);
+		Fields["IsTerrain"] = JSON_Stringify(C.IsTerrain);
+		Fields["WaypointType"] = JSON_Stringify(C.WaypointType);
+		Fields["NoRespawn"] = JSON_Stringify(C.NoRespawn);
+		Fields["VariantGround"] = JSON_Stringify(C.VariantGround);
+		Fields["VariantAir"] = JSON_Stringify(C.VariantAir);
+	}
+	if (_V is CTitle) {
+		declare C <=> (_V as CTitle);
+		Fields["TitleId"] = JSON_Stringify(C.TitleId);
+		Fields["BaseTitleId"] = JSON_Stringify(C.BaseTitleId);
+		Fields["Name"] = JSON_Stringify(_JSON_Es(C.Name));
+		Fields["Desc"] = JSON_Stringify(_JSON_Es(C.Desc));
+		Fields["InfoUrl"] = JSON_Stringify(_JSON_Es(C.InfoUrl));
+		Fields["DownloadUrl"] = JSON_Stringify(_JSON_Es(C.DownloadUrl));
+		Fields["TitleVersion"] = JSON_Stringify(C.TitleVersion);
+	}
+	if (_V is CXmlRpc) {
+		declare C <=> (_V as CXmlRpc);
 		declare Part = "[";
-		for(I, 0, C.TargetsToAvoid.count-1) {
-			Part ^= JSON_Stringify(C.TargetsToAvoid[I]);
-			if (I < C.TargetsToAvoid.count-1) Part ^= ",";
+		for(I, 0, C.PendingEvents.count-1) {
+			Part ^= JSON_Stringify(C.PendingEvents[I]);
+			if (I < C.PendingEvents.count-1) Part ^= ",";
 		}
-		Fields["TargetsToAvoid"] = Part ^ "]";
+		Fields["PendingEvents"] = Part ^ "]";
+	}
+	if (_V is CTmResult) {
+		declare C <=> (_V as CTmResult);
+		Fields["Time"] = JSON_Stringify(C.Time);
+		Fields["StuntsScore"] = JSON_Stringify(C.StuntsScore);
+		Fields["NbRespawns"] = JSON_Stringify(C.NbRespawns);
+		declare Part = "[";
+		for(I, 0, C.Checkpoints.count-1) {
+			Part ^= JSON_Stringify(C.Checkpoints[I]);
+			if (I < C.Checkpoints.count-1) Part ^= ",";
+		}
+		Fields["Checkpoints"] = Part ^ "]";
+	}
+	if (_V is CSmAction) {
+		declare C <=> (_V as CSmAction);
+		Fields["Now"] = JSON_Stringify(C.Now);
+		Fields["Variant"] = JSON_Stringify(C.Variant);
+		declare Part = "[";
+		for(I, 0, C.Players.count-1) {
+			Part ^= JSON_Stringify(C.Players[I]);
+			if (I < C.Players.count-1) Part ^= ",";
+		}
+		Fields["Players"] = Part ^ "]";
+		Fields["Owner"] = JSON_Stringify(C.Owner);
+		Fields["IsActive"] = JSON_Stringify(C.IsActive);
+		Fields["Energy"] = JSON_Stringify(C.Energy);
+		Fields["EnergyMax"] = JSON_Stringify(C.EnergyMax);
+		Fields["EnergyCost"] = JSON_Stringify(C.EnergyCost);
+		Fields["EnergyReload"] = JSON_Stringify(C.EnergyReload);
+		Part = "[";
+		for(I, 0, C.PendingEvents.count-1) {
+			Part ^= JSON_Stringify(C.PendingEvents[I]);
+			if (I < C.PendingEvents.count-1) Part ^= ",";
+		}
+		Fields["PendingEvents"] = Part ^ "]";
+		Fields["Cooldown"] = JSON_Stringify(C.Cooldown);
+	}
+	if (_V is CHttpRequest) {
+		declare C <=> (_V as CHttpRequest);
+		Fields["Url"] = JSON_Stringify(_JSON_Es(C.Url));
+		Fields["Result"] = JSON_Stringify(_JSON_Es(C.Result));
+		Fields["StatusCode"] = JSON_Stringify(C.StatusCode);
+		Fields["IsCompleted"] = JSON_Stringify(C.IsCompleted);
+	}
+	if (_V is CTmModeEvent) {
+		declare C <=> (_V as CTmModeEvent);
+		Fields["Type"] = JSON_Stringify(C.Type);
+		Fields["Player"] = JSON_Stringify(C.Player);
+		Fields["RaceTime"] = JSON_Stringify(C.RaceTime);
+		Fields["CheckpointInRace"] = JSON_Stringify(C.CheckpointInRace);
+		Fields["CheckpointInLap"] = JSON_Stringify(C.CheckpointInLap);
+		Fields["IsEndLap"] = JSON_Stringify(C.IsEndLap);
+		Fields["IsEndRace"] = JSON_Stringify(C.IsEndRace);
+		Fields["LapTime"] = JSON_Stringify(C.LapTime);
+		Fields["StuntsScore"] = JSON_Stringify(C.StuntsScore);
+		Fields["NbRespawns"] = JSON_Stringify(C.NbRespawns);
+		Fields["BlockId"] = JSON_Stringify(C.BlockId);
+		Fields["Speed"] = JSON_Stringify(C.Speed);
+		Fields["Distance"] = JSON_Stringify(C.Distance);
+		Fields["Damages"] = JSON_Stringify(C.Damages);
+		Fields["StuntFigure"] = JSON_Stringify(C.StuntFigure);
+		Fields["Angle"] = JSON_Stringify(C.Angle);
+		Fields["Points"] = JSON_Stringify(C.Points);
+		Fields["Combo"] = JSON_Stringify(C.Combo);
+		Fields["IsStraight"] = JSON_Stringify(C.IsStraight);
+		Fields["IsReverse"] = JSON_Stringify(C.IsReverse);
+		Fields["IsMasterJump"] = JSON_Stringify(C.IsMasterJump);
+		Fields["Factor"] = JSON_Stringify(C.Factor);
+		Fields["User"] = JSON_Stringify(C.User);
+		Fields["PlayerWasSpawned"] = JSON_Stringify(C.PlayerWasSpawned);
+		Fields["PlayerWasInLadderMatch"] = JSON_Stringify(C.PlayerWasInLadderMatch);
+		Fields["CommandName"] = JSON_Stringify(C.CommandName);
+		Fields["CommandValueBoolean"] = JSON_Stringify(C.CommandValueBoolean);
+		Fields["CommandValueInteger"] = JSON_Stringify(C.CommandValueInteger);
+		Fields["CommandValueReal"] = JSON_Stringify(C.CommandValueReal);
+		Fields["CommandValueText"] = JSON_Stringify(C.CommandValueText);
+	}
+	if (_V is CUILayer) {
+		declare C <=> (_V as CUILayer);
+		Fields["IsVisible"] = JSON_Stringify(C.IsVisible);
+		Fields["Type"] = JSON_Stringify(C.Type);
+		Fields["AttachId"] = JSON_Stringify(C.AttachId);
+		Fields["LocalPage"] = JSON_Stringify(C.LocalPage);
+	}
+	if (_V is CBlockModelVariant) {
+		declare C <=> (_V as CBlockModelVariant);
+		Fields["Name"] = JSON_Stringify(C.Name);
+		Fields["IsAllUnderground"] = JSON_Stringify(C.IsAllUnderground);
+		Fields["IsPartUnderground"] = JSON_Stringify(C.IsPartUnderground);
+		Fields["Size"] = JSON_Stringify(C.Size);
+		Fields["OffsetBoundingBoxMin"] = JSON_Stringify(C.OffsetBoundingBoxMin);
+		Fields["OffsetBoundingBoxMax"] = JSON_Stringify(C.OffsetBoundingBoxMax);
+		declare Part = "[";
+		for(I, 0, C.BlockUnitModels.count-1) {
+			Part ^= JSON_Stringify(C.BlockUnitModels[I]);
+			if (I < C.BlockUnitModels.count-1) Part ^= ",";
+		}
+		Fields["BlockUnitModels"] = Part ^ "]";
+	}
+	if (_V is CSmActionEvent) {
+		declare C <=> (_V as CSmActionEvent);
+		Fields["Type"] = JSON_Stringify(C.Type);
+		Fields["Player"] = JSON_Stringify(C.Player);
+		Fields["Damage"] = JSON_Stringify(C.Damage);
+		Fields["ProjectileModelId"] = JSON_Stringify(C.ProjectileModelId);
+		Fields["ContextId"] = JSON_Stringify(C.ContextId);
+		Fields["Position"] = JSON_Stringify(C.Position);
+		Fields["Direction"] = JSON_Stringify(C.Direction);
+		Fields["Normal"] = JSON_Stringify(C.Normal);
+	}
+	if (_V is CManiaApp) {
+		declare C <=> (_V as CManiaApp);
+		Fields["Now"] = JSON_Stringify(C.Now);
+		Fields["IsVisible"] = JSON_Stringify(C.IsVisible);
+		Fields["LocalUser"] = JSON_Stringify(C.LocalUser);
+		Fields["LoadedTitle"] = JSON_Stringify(C.LoadedTitle);
+		Fields["EnableMenuNavigationInputs"] = JSON_Stringify(C.EnableMenuNavigationInputs);
+		Fields["MouseX"] = JSON_Stringify(C.MouseX);
+		Fields["MouseY"] = JSON_Stringify(C.MouseY);
+		declare Part = "[";
+		for(I, 0, C.UILayers.count-1) {
+			Part ^= JSON_Stringify(C.UILayers[I]);
+			if (I < C.UILayers.count-1) Part ^= ",";
+		}
+		Fields["UILayers"] = Part ^ "]";
+		Fields["Xml"] = JSON_Stringify(C.Xml);
+		Fields["Http"] = JSON_Stringify(C.Http);
+		Fields["Audio"] = JSON_Stringify(C.Audio);
+	}
+	if (_V is CEditorPlugin) {
+		declare C <=> (_V as CEditorPlugin);
+		declare Part = "[";
+		for(I, 0, C.PendingEvents.count-1) {
+			Part ^= JSON_Stringify(C.PendingEvents[I]);
+			if (I < C.PendingEvents.count-1) Part ^= ",";
+		}
+		Fields["PendingEvents"] = Part ^ "]";
+		Fields["Map"] = JSON_Stringify(C.Map);
+		Fields["MapName"] = JSON_Stringify(_JSON_Es(C.MapName));
+		Fields["PlaceMode"] = JSON_Stringify(C.PlaceMode);
+		Fields["EditMode"] = JSON_Stringify(C.EditMode);
+		Fields["UndergroundMode"] = JSON_Stringify(C.UndergroundMode);
+		Fields["BlockStockMode"] = JSON_Stringify(C.BlockStockMode);
+		Fields["CursorCoord"] = JSON_Stringify(C.CursorCoord);
+		Fields["CursorDir"] = JSON_Stringify(C.CursorDir);
+		Fields["CursorBlockModel"] = JSON_Stringify(C.CursorBlockModel);
+		Fields["CursorTerrainBlockModel"] = JSON_Stringify(C.CursorTerrainBlockModel);
+		Fields["CursorMacroblockModel"] = JSON_Stringify(C.CursorMacroblockModel);
+		Fields["CameraVAngle"] = JSON_Stringify(C.CameraVAngle);
+		Fields["CameraHAngle"] = JSON_Stringify(C.CameraHAngle);
+		Fields["CameraToTargetDistance"] = JSON_Stringify(C.CameraToTargetDistance);
+		Fields["TargetedPosition"] = JSON_Stringify(C.TargetedPosition);
+		Fields["EnableAirMapping"] = JSON_Stringify(C.EnableAirMapping);
+		Fields["EnableMixMapping"] = JSON_Stringify(C.EnableMixMapping);
+		Part = "[";
+		for(I, 0, C.Items.count-1) {
+			Part ^= JSON_Stringify(C.Items[I]);
+			if (I < C.Items.count-1) Part ^= ",";
+		}
+		Fields["Items"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.MediatrackIngameClips.count-1) {
+			Part ^= JSON_Stringify(C.MediatrackIngameClips[I]);
+			if (I < C.MediatrackIngameClips.count-1) Part ^= ",";
+		}
+		Fields["MediatrackIngameClips"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.MediatrackIngameIsScriptClips.count-1) {
+			Part ^= JSON_Stringify(C.MediatrackIngameIsScriptClips[I]);
+			if (I < C.MediatrackIngameIsScriptClips.count-1) Part ^= ",";
+		}
+		Fields["MediatrackIngameIsScriptClips"] = Part ^ "]";
+		Fields["MediatrackIngameEditedClipIndex"] = JSON_Stringify(C.MediatrackIngameEditedClipIndex);
+		Part = "[";
+		for(I, 0, C.Blocks.count-1) {
+			Part ^= JSON_Stringify(C.Blocks[I]);
+			if (I < C.Blocks.count-1) Part ^= ",";
+		}
+		Fields["Blocks"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.BlockModels.count-1) {
+			Part ^= JSON_Stringify(C.BlockModels[I]);
+			if (I < C.BlockModels.count-1) Part ^= ",";
+		}
+		Fields["BlockModels"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.TerrainBlockModels.count-1) {
+			Part ^= JSON_Stringify(C.TerrainBlockModels[I]);
+			if (I < C.TerrainBlockModels.count-1) Part ^= ",";
+		}
+		Fields["TerrainBlockModels"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.MacroblockModels.count-1) {
+			Part ^= JSON_Stringify(C.MacroblockModels[I]);
+			if (I < C.MacroblockModels.count-1) Part ^= ",";
+		}
+		Fields["MacroblockModels"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.AnchorData.count-1) {
+			Part ^= JSON_Stringify(C.AnchorData[I]);
+			if (I < C.AnchorData.count-1) Part ^= ",";
+		}
+		Fields["AnchorData"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.CustomSelectionCoords.count-1) {
+			Part ^= JSON_Stringify(C.CustomSelectionCoords[I]);
+			if (I < C.CustomSelectionCoords.count-1) Part ^= ",";
+		}
+		Fields["CustomSelectionCoords"] = Part ^ "]";
+		Fields["CustomSelectionRGB"] = JSON_Stringify(C.CustomSelectionRGB);
+		Fields["EnableEditorInputsCustomProcessing"] = JSON_Stringify(C.EnableEditorInputsCustomProcessing);
+		Fields["EditorInputIsDown_Menu"] = JSON_Stringify(C.EditorInputIsDown_Menu);
+		Fields["EditorInputIsDown_SwitchToRace"] = JSON_Stringify(C.EditorInputIsDown_SwitchToRace);
+		Fields["EditorInputIsDown_CursorUp"] = JSON_Stringify(C.EditorInputIsDown_CursorUp);
+		Fields["EditorInputIsDown_CursorRight"] = JSON_Stringify(C.EditorInputIsDown_CursorRight);
+		Fields["EditorInputIsDown_CursorDown"] = JSON_Stringify(C.EditorInputIsDown_CursorDown);
+		Fields["EditorInputIsDown_CursorLeft"] = JSON_Stringify(C.EditorInputIsDown_CursorLeft);
+		Fields["EditorInputIsDown_CursorRaise"] = JSON_Stringify(C.EditorInputIsDown_CursorRaise);
+		Fields["EditorInputIsDown_CursorLower"] = JSON_Stringify(C.EditorInputIsDown_CursorLower);
+		Fields["EditorInputIsDown_CursorTurn"] = JSON_Stringify(C.EditorInputIsDown_CursorTurn);
+		Fields["EditorInputIsDown_CursorPick"] = JSON_Stringify(C.EditorInputIsDown_CursorPick);
+		Fields["EditorInputIsDown_CursorPlace"] = JSON_Stringify(C.EditorInputIsDown_CursorPlace);
+		Fields["EditorInputIsDown_CursorDelete"] = JSON_Stringify(C.EditorInputIsDown_CursorDelete);
+		Fields["EditorInputIsDown_CameraUp"] = JSON_Stringify(C.EditorInputIsDown_CameraUp);
+		Fields["EditorInputIsDown_CameraRight"] = JSON_Stringify(C.EditorInputIsDown_CameraRight);
+		Fields["EditorInputIsDown_CameraDown"] = JSON_Stringify(C.EditorInputIsDown_CameraDown);
+		Fields["EditorInputIsDown_CameraLeft"] = JSON_Stringify(C.EditorInputIsDown_CameraLeft);
+		Fields["EditorInputIsDown_IconUp"] = JSON_Stringify(C.EditorInputIsDown_IconUp);
+		Fields["EditorInputIsDown_IconRight"] = JSON_Stringify(C.EditorInputIsDown_IconRight);
+		Fields["EditorInputIsDown_IconDown"] = JSON_Stringify(C.EditorInputIsDown_IconDown);
+		Fields["EditorInputIsDown_IconLeft"] = JSON_Stringify(C.EditorInputIsDown_IconLeft);
+		Fields["CollectionSquareSize"] = JSON_Stringify(C.CollectionSquareSize);
+		Fields["CollectionSquareHeight"] = JSON_Stringify(C.CollectionSquareHeight);
+		Fields["CollectionGroundY"] = JSON_Stringify(C.CollectionGroundY);
+		Fields["ManialinkPage"] = JSON_Stringify(C.ManialinkPage);
+	}
+	if (_V is CMapType) {
+		declare C <=> (_V as CMapType);
+		Fields["CustomEditAnchorData"] = JSON_Stringify(C.CustomEditAnchorData);
+		Fields["ValidationStatus"] = JSON_Stringify(C.ValidationStatus);
+		Fields["ValidabilityRequirementsMessage"] = JSON_Stringify(C.ValidabilityRequirementsMessage);
+		Fields["ValidationEndRequested"] = JSON_Stringify(C.ValidationEndRequested);
+		Fields["IsSwitchedToPlayground"] = JSON_Stringify(C.IsSwitchedToPlayground);
+		Fields["UIManager"] = JSON_Stringify(C.UIManager);
+		declare Part = "[";
+		for(I, 0, C.Users.count-1) {
+			Part ^= JSON_Stringify(C.Users[I]);
+			if (I < C.Users.count-1) Part ^= ",";
+		}
+		Fields["Users"] = Part ^ "]";
+	}
+	if (_V is CTmMapType) {
+		declare C <=> (_V as CTmMapType);
+		Fields["Mode"] = JSON_Stringify(C.Mode);
+		declare Part = "[";
+		for(I, 0, C.AllPlayers.count-1) {
+			Part ^= JSON_Stringify(C.AllPlayers[I]);
+			if (I < C.AllPlayers.count-1) Part ^= ",";
+		}
+		Fields["AllPlayers"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.Players.count-1) {
+			Part ^= JSON_Stringify(C.Players[I]);
+			if (I < C.Players.count-1) Part ^= ",";
+		}
+		Fields["Players"] = Part ^ "]";
+	}
+	if (_V is CSmMapType) {
+		declare C <=> (_V as CSmMapType);
+		Fields["Mode"] = JSON_Stringify(C.Mode);
+		declare Part = "[";
+		for(I, 0, C.AllPlayers.count-1) {
+			Part ^= JSON_Stringify(C.AllPlayers[I]);
+			if (I < C.AllPlayers.count-1) Part ^= ",";
+		}
+		Fields["AllPlayers"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.Players.count-1) {
+			Part ^= JSON_Stringify(C.Players[I]);
+			if (I < C.Players.count-1) Part ^= ",";
+		}
+		Fields["Players"] = Part ^ "]";
+	}
+	if (_V is CManiaAppTitle) {
+		declare C <=> (_V as CManiaAppTitle);
+		declare Part = "[";
+		for(I, 0, C.PendingEvents.count-1) {
+			Part ^= JSON_Stringify(C.PendingEvents[I]);
+			if (I < C.PendingEvents.count-1) Part ^= ",";
+		}
+		Fields["PendingEvents"] = Part ^ "]";
+		Fields["LoadingScreenRequireKeyPressed"] = JSON_Stringify(C.LoadingScreenRequireKeyPressed);
+		Fields["DontScaleMainMenuForHMD"] = JSON_Stringify(C.DontScaleMainMenuForHMD);
+	}
+	if (_V is CSmMapBase) {
+		declare C <=> (_V as CSmMapBase);
+		Fields["Clan"] = JSON_Stringify(C.Clan);
+		Fields["IsActive"] = JSON_Stringify(C.IsActive);
+		Fields["NumberOfCollectors"] = JSON_Stringify(C.NumberOfCollectors);
+	}
+	if (_V is CUser) {
+		declare C <=> (_V as CUser);
+		Fields["Login"] = JSON_Stringify(C.Login);
+		Fields["Name"] = JSON_Stringify(_JSON_Es(C.Name));
+		Fields["AvatarUrl"] = JSON_Stringify(_JSON_Es(C.AvatarUrl));
+		Fields["ZonePath"] = JSON_Stringify(C.ZonePath);
+		Fields["ZoneFlagUrl"] = JSON_Stringify(_JSON_Es(C.ZoneFlagUrl));
+		Fields["CountryFlagUrl"] = JSON_Stringify(_JSON_Es(C.CountryFlagUrl));
+		Fields["Language"] = JSON_Stringify(C.Language);
+		Fields["Description"] = JSON_Stringify(_JSON_Es(C.Description));
+		Fields["Color"] = JSON_Stringify(C.Color);
+		Fields["ClubLink"] = JSON_Stringify(_JSON_Es(C.ClubLink));
+		Fields["BroadcastTVLogin"] = JSON_Stringify(C.BroadcastTVLogin);
+		Fields["SteamUserId"] = JSON_Stringify(C.SteamUserId);
+		Fields["FameStars"] = JSON_Stringify(C.FameStars);
+		Fields["Echelon"] = JSON_Stringify(C.Echelon);
+		Fields["IsBeginner"] = JSON_Stringify(C.IsBeginner);
+		Fields["LadderRank"] = JSON_Stringify(C.LadderRank);
+		Fields["LadderTotal"] = JSON_Stringify(C.LadderTotal);
+		Fields["LadderPoints"] = JSON_Stringify(C.LadderPoints);
+		Fields["LadderZoneName"] = JSON_Stringify(C.LadderZoneName);
+		Fields["LadderZoneFlagUrl"] = JSON_Stringify(_JSON_Es(C.LadderZoneFlagUrl));
+		Fields["RequestedClan"] = JSON_Stringify(C.RequestedClan);
+		Fields["RequestsSpectate"] = JSON_Stringify(C.RequestsSpectate);
+		Fields["IsFakeUser"] = JSON_Stringify(C.IsFakeUser);
+		declare Part = "[";
+		for(I, 0, C.Tags_Favored_Indices.count-1) {
+			Part ^= JSON_Stringify(C.Tags_Favored_Indices[I]);
+			if (I < C.Tags_Favored_Indices.count-1) Part ^= ",";
+		}
+		Fields["Tags_Favored_Indices"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.Tags_Id.count-1) {
+			Part ^= JSON_Stringify(C.Tags_Id[I]);
+			if (I < C.Tags_Id.count-1) Part ^= ",";
+		}
+		Fields["Tags_Id"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.Tags_Type.count-1) {
+			Part ^= JSON_Stringify(C.Tags_Type[I]);
+			if (I < C.Tags_Type.count-1) Part ^= ",";
+		}
+		Fields["Tags_Type"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.Tags_Comments.count-1) {
+			Part ^= JSON_Stringify(C.Tags_Comments[I]);
+			if (I < C.Tags_Comments.count-1) Part ^= ",";
+		}
+		Fields["Tags_Comments"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.Tags_Deliverer.count-1) {
+			Part ^= JSON_Stringify(C.Tags_Deliverer[I]);
+			if (I < C.Tags_Deliverer.count-1) Part ^= ",";
+		}
+		Fields["Tags_Deliverer"] = Part ^ "]";
+		Part = "[";
+		for(I, 0, C.AlliesConnected.count-1) {
+			Part ^= JSON_Stringify(C.AlliesConnected[I]);
+			if (I < C.AlliesConnected.count-1) Part ^= ",";
+		}
+		Fields["AlliesConnected"] = Part ^ "]";
+		Fields["StereoDisplayMode"] = JSON_Stringify(C.StereoDisplayMode);
+	}
+	if (_V is CXmlNode) {
+		declare C <=> (_V as CXmlNode);
+		Fields["Name"] = JSON_Stringify(C.Name);
+		Fields["TextContents"] = JSON_Stringify(C.TextContents);
+		Fields["TextRawContents"] = JSON_Stringify(C.TextRawContents);
+		Fields["TextRecursiveContents"] = JSON_Stringify(C.TextRecursiveContents);
+		declare Part = "[";
+		for(I, 0, C.Children.count-1) {
+			Part ^= JSON_Stringify(C.Children[I]);
+			if (I < C.Children.count-1) Part ^= ",";
+		}
+		Fields["Children"] = Part ^ "]";
 	}
 	if (_V is CMlGraphCurve) {
 		declare C <=> (_V as CMlGraphCurve);
@@ -2624,13 +2443,207 @@ Text JSON_Stringify(CNod _V) {
 		Fields["Style"] = JSON_Stringify(C.Style);
 		Fields["Width"] = JSON_Stringify(C.Width);
 	}
-	if (Fields.count == 0) return "";
-	declare Text Result = "{";
-	declare Index = 0;
-	foreach (Name => Value in Fields) {
-		Result ^= "\""^Name^"\":"^Value;
-		if (Index < Fields.count - 1) Result ^= ",";
-		Index += 1;
+	if (_V is CXmlManager) {
+		declare C <=> (_V as CXmlManager);
+		declare Part = "[";
+		for(I, 0, C.Documents.count-1) {
+			Part ^= JSON_Stringify(C.Documents[I]);
+			if (I < C.Documents.count-1) Part ^= ",";
+		}
+		Fields["Documents"] = Part ^ "]";
 	}
-	return Result ^ "}";
+	if (_V is CTeam) {
+		declare C <=> (_V as CTeam);
+		Fields["Name"] = JSON_Stringify(_JSON_Es(C.Name));
+		Fields["ZonePath"] = JSON_Stringify(C.ZonePath);
+		Fields["City"] = JSON_Stringify(C.City);
+		Fields["EmblemUrl"] = JSON_Stringify(_JSON_Es(C.EmblemUrl));
+		Fields["PresentationManialinkUrl"] = JSON_Stringify(_JSON_Es(C.PresentationManialinkUrl));
+		Fields["ClubLinkUrl"] = JSON_Stringify(_JSON_Es(C.ClubLinkUrl));
+		Fields["ColorPrimary"] = JSON_Stringify(C.ColorPrimary);
+		Fields["ColorSecondary"] = JSON_Stringify(C.ColorSecondary);
+		Fields["ColorText"] = JSON_Stringify(C.ColorText);
+		Fields["ColorizedName"] = JSON_Stringify(C.ColorizedName);
+	}
+	if (_V is CSmMapObjectAnchor) {
+		declare C <=> (_V as CSmMapObjectAnchor);
+		Fields["ItemName"] = JSON_Stringify(C.ItemName);
+		Fields["ItemModelId"] = JSON_Stringify(C.ItemModelId);
+	}
+	if (_V is CSmObject) {
+		declare C <=> (_V as CSmObject);
+		Fields["Status"] = JSON_Stringify(C.Status);
+		Fields["ModelId"] = JSON_Stringify(C.ModelId);
+		Fields["Player"] = JSON_Stringify(C.Player);
+		Fields["Position"] = JSON_Stringify(C.Position);
+		Fields["Vel"] = JSON_Stringify(C.Vel);
+		Fields["MachineState"] = JSON_Stringify(C.MachineState);
+		Fields["Throwable"] = JSON_Stringify(C.Throwable);
+	}
+	if (_V is CSmBase) {
+		declare C <=> (_V as CSmBase);
+		Fields["Clan"] = JSON_Stringify(C.Clan);
+		Fields["IsActive"] = JSON_Stringify(C.IsActive);
+		Fields["NumberOfCollectors"] = JSON_Stringify(C.NumberOfCollectors);
+	}
+	if (_V is CXmlRpcEvent) {
+		declare C <=> (_V as CXmlRpcEvent);
+		Fields["Type"] = JSON_Stringify(C.Type);
+		Fields["Param1"] = JSON_Stringify(C.Param1);
+		Fields["Param2"] = JSON_Stringify(C.Param2);
+		Fields["ParamArray1"] = JSON_Stringify(C.ParamArray1);
+		declare Part = "[";
+		for(I, 0, C.ParamArray2.count-1) {
+			Part ^= JSON_Stringify(C.ParamArray2[I]);
+			if (I < C.ParamArray2.count-1) Part ^= ",";
+		}
+		Fields["ParamArray2"] = Part ^ "]";
+	}
+	if (_V is CUIConfig) {
+		declare C <=> (_V as CUIConfig);
+		Fields["UISequence"] = JSON_Stringify(C.UISequence);
+		Fields["UISequenceIsCompleted"] = JSON_Stringify(C.UISequenceIsCompleted);
+		Fields["UISequence_CustomMTClip"] = JSON_Stringify(C.UISequence_CustomMTClip);
+		Fields["UISequence_CustomMTRefTime"] = JSON_Stringify(C.UISequence_CustomMTRefTime);
+		Fields["UISequence_CanSkipIntroMT"] = JSON_Stringify(C.UISequence_CanSkipIntroMT);
+		Fields["UISequence_PodiumPlayersWin"] = JSON_Stringify(C.UISequence_PodiumPlayersWin);
+		Fields["UISequence_PodiumPlayersLose"] = JSON_Stringify(C.UISequence_PodiumPlayersLose);
+		Fields["BigMessage"] = JSON_Stringify(_JSON_Es(C.BigMessage));
+		Fields["BigMessageAvatarLogin"] = JSON_Stringify(C.BigMessageAvatarLogin);
+		Fields["BigMessageAvatarVariant"] = JSON_Stringify(C.BigMessageAvatarVariant);
+		Fields["BigMessageSound"] = JSON_Stringify(C.BigMessageSound);
+		Fields["BigMessageSoundVariant"] = JSON_Stringify(C.BigMessageSoundVariant);
+		Fields["StatusMessage"] = JSON_Stringify(_JSON_Es(C.StatusMessage));
+		Fields["GaugeMessage"] = JSON_Stringify(_JSON_Es(C.GaugeMessage));
+		Fields["GaugeRatio"] = JSON_Stringify(C.GaugeRatio);
+		Fields["GaugeClan"] = JSON_Stringify(C.GaugeClan);
+		Fields["MarkersXML"] = JSON_Stringify(_JSON_Es(C.MarkersXML));
+		declare Part = "[";
+		for(I, 0, C.UILayers.count-1) {
+			Part ^= JSON_Stringify(C.UILayers[I]);
+			if (I < C.UILayers.count-1) Part ^= ",";
+		}
+		Fields["UILayers"] = Part ^ "]";
+		Fields["OverlayHideNotices"] = JSON_Stringify(C.OverlayHideNotices);
+		Fields["OverlayHideMapInfo"] = JSON_Stringify(C.OverlayHideMapInfo);
+		Fields["OverlayHideOpponentsInfo"] = JSON_Stringify(C.OverlayHideOpponentsInfo);
+		Fields["OverlayHideChat"] = JSON_Stringify(C.OverlayHideChat);
+		Fields["OverlayHideCheckPointList"] = JSON_Stringify(C.OverlayHideCheckPointList);
+		Fields["OverlayHideRoundScores"] = JSON_Stringify(C.OverlayHideRoundScores);
+		Fields["OverlayHideCountdown"] = JSON_Stringify(C.OverlayHideCountdown);
+		Fields["OverlayHideCrosshair"] = JSON_Stringify(C.OverlayHideCrosshair);
+		Fields["OverlayHideGauges"] = JSON_Stringify(C.OverlayHideGauges);
+		Fields["OverlayHideConsumables"] = JSON_Stringify(C.OverlayHideConsumables);
+		Fields["OverlayHide321Go"] = JSON_Stringify(C.OverlayHide321Go);
+		Fields["OverlayHideBackground"] = JSON_Stringify(C.OverlayHideBackground);
+		Fields["OverlayHideChrono"] = JSON_Stringify(C.OverlayHideChrono);
+		Fields["OverlayHideSpeedAndDist"] = JSON_Stringify(C.OverlayHideSpeedAndDist);
+		Fields["OverlayHidePersonnalBestAndRank"] = JSON_Stringify(C.OverlayHidePersonnalBestAndRank);
+		Fields["OverlayHidePosition"] = JSON_Stringify(C.OverlayHidePosition);
+		Fields["OverlayHideCheckPointTime"] = JSON_Stringify(C.OverlayHideCheckPointTime);
+		Fields["OverlayHideEndMapLadderRecap"] = JSON_Stringify(C.OverlayHideEndMapLadderRecap);
+		Fields["OverlayHideMultilapInfos"] = JSON_Stringify(C.OverlayHideMultilapInfos);
+		Fields["OverlayHideSpectatorControllers"] = JSON_Stringify(C.OverlayHideSpectatorControllers);
+		Fields["OverlayHideSpectatorInfos"] = JSON_Stringify(C.OverlayHideSpectatorInfos);
+		Fields["OverlayChatHideAvatar"] = JSON_Stringify(C.OverlayChatHideAvatar);
+		Fields["OverlayChatLineCount"] = JSON_Stringify(C.OverlayChatLineCount);
+		Fields["OverlayChatOffset"] = JSON_Stringify(C.OverlayChatOffset);
+		Fields["CountdownCoord"] = JSON_Stringify(C.CountdownCoord);
+		Fields["NoticesFilter_HidePlayerInfo"] = JSON_Stringify(C.NoticesFilter_HidePlayerInfo);
+		Fields["NoticesFilter_HidePlayerWarning"] = JSON_Stringify(C.NoticesFilter_HidePlayerWarning);
+		Fields["NoticesFilter_HidePlayerInfoIfNotMe"] = JSON_Stringify(C.NoticesFilter_HidePlayerInfoIfNotMe);
+		Fields["NoticesFilter_HidePlayerWarningIfNotMe"] = JSON_Stringify(C.NoticesFilter_HidePlayerWarningIfNotMe);
+		Fields["NoticesFilter_HideMapInfo"] = JSON_Stringify(C.NoticesFilter_HideMapInfo);
+		Fields["NoticesFilter_HideMapWarning"] = JSON_Stringify(C.NoticesFilter_HideMapWarning);
+		Fields["NoticesFilter_HideMatchInfo"] = JSON_Stringify(C.NoticesFilter_HideMatchInfo);
+		Fields["NoticesFilter_HideMatchWarning"] = JSON_Stringify(C.NoticesFilter_HideMatchWarning);
+		Fields["NoticesFilter_LevelToShowAsBigMessage"] = JSON_Stringify(C.NoticesFilter_LevelToShowAsBigMessage);
+		Fields["ScoreTable"] = JSON_Stringify(_JSON_Es(C.ScoreTable));
+		Fields["ScoreTableVisibility"] = JSON_Stringify(C.ScoreTableVisibility);
+		Fields["SmallScoreTable"] = JSON_Stringify(_JSON_Es(C.SmallScoreTable));
+		Fields["SmallScoreTableVisibility"] = JSON_Stringify(C.SmallScoreTableVisibility);
+		Fields["ScoreTableOnlyManialink"] = JSON_Stringify(C.ScoreTableOnlyManialink);
+		Fields["AltMenuNoDefaultScores"] = JSON_Stringify(C.AltMenuNoDefaultScores);
+		Fields["AltMenuNoCustomScores"] = JSON_Stringify(C.AltMenuNoCustomScores);
+		Fields["OverlayScoreSummary"] = JSON_Stringify(C.OverlayScoreSummary);
+		Fields["ScoreSummary_Player1"] = JSON_Stringify(C.ScoreSummary_Player1);
+		Fields["ScoreSummary_Points1"] = JSON_Stringify(C.ScoreSummary_Points1);
+		Fields["ScoreSummary_RoundPoints1"] = JSON_Stringify(C.ScoreSummary_RoundPoints1);
+		Fields["ScoreSummary_MatchPoints1"] = JSON_Stringify(C.ScoreSummary_MatchPoints1);
+		Fields["ScoreSummary_Gauge1"] = JSON_Stringify(C.ScoreSummary_Gauge1);
+		Fields["ScoreSummary_Player2"] = JSON_Stringify(C.ScoreSummary_Player2);
+		Fields["ScoreSummary_Points2"] = JSON_Stringify(C.ScoreSummary_Points2);
+		Fields["ScoreSummary_RoundPoints2"] = JSON_Stringify(C.ScoreSummary_RoundPoints2);
+		Fields["ScoreSummary_MatchPoints2"] = JSON_Stringify(C.ScoreSummary_MatchPoints2);
+		Fields["ScoreSummary_Gauge2"] = JSON_Stringify(C.ScoreSummary_Gauge2);
+		Fields["ScreenIn3dHideScoreSummary"] = JSON_Stringify(C.ScreenIn3dHideScoreSummary);
+		Fields["ScreenIn3dHideVersus"] = JSON_Stringify(C.ScreenIn3dHideVersus);
+		Fields["CountdownEndTime"] = JSON_Stringify(C.CountdownEndTime);
+		Fields["UIStatus"] = JSON_Stringify(C.UIStatus);
+		Fields["AlliesLabelsVisibility"] = JSON_Stringify(C.AlliesLabelsVisibility);
+		Fields["AlliesLabelsShowGauges"] = JSON_Stringify(C.AlliesLabelsShowGauges);
+		Fields["AlliesLabelsShowNames"] = JSON_Stringify(C.AlliesLabelsShowNames);
+		Fields["AlliesLabelsMaxCount"] = JSON_Stringify(C.AlliesLabelsMaxCount);
+		Fields["TeamLabelsVisibility"] = JSON_Stringify(C.TeamLabelsVisibility);
+		Fields["TeamLabelsShowGauges"] = JSON_Stringify(C.TeamLabelsShowGauges);
+		Fields["TeamLabelsShowNames"] = JSON_Stringify(C.TeamLabelsShowNames);
+		Fields["OpposingTeamLabelsVisibility"] = JSON_Stringify(C.OpposingTeamLabelsVisibility);
+		Fields["OpposingTeamLabelsShowGauges"] = JSON_Stringify(C.OpposingTeamLabelsShowGauges);
+		Fields["OpposingTeamLabelsShowNames"] = JSON_Stringify(C.OpposingTeamLabelsShowNames);
+		Fields["ForceSpectator"] = JSON_Stringify(C.ForceSpectator);
+		Fields["SpectatorForceCameraType"] = JSON_Stringify(C.SpectatorForceCameraType);
+		Fields["SpectatorAutoTarget"] = JSON_Stringify(C.SpectatorAutoTarget);
+		Fields["SpectatorForcedTarget"] = JSON_Stringify(C.SpectatorForcedTarget);
+		Fields["SpectatorForcedClan"] = JSON_Stringify(C.SpectatorForcedClan);
+		Fields["SpectatorCamAutoLatitude"] = JSON_Stringify(C.SpectatorCamAutoLatitude);
+		Fields["SpectatorCamAutoLongitude"] = JSON_Stringify(C.SpectatorCamAutoLongitude);
+		Fields["SpectatorCamAutoRadius"] = JSON_Stringify(C.SpectatorCamAutoRadius);
+		Fields["SpectatorObserverMode"] = JSON_Stringify(C.SpectatorObserverMode);
+	}
+	if (_V is CManiaAppEvent) {
+		declare C <=> (_V as CManiaAppEvent);
+		Fields["Type"] = JSON_Stringify(C.Type);
+		Fields["CustomEventLayer"] = JSON_Stringify(C.CustomEventLayer);
+		Fields["CustomEventType"] = JSON_Stringify(C.CustomEventType);
+		declare Part = "[";
+		for(I, 0, C.CustomEventData.count-1) {
+			Part ^= JSON_Stringify(C.CustomEventData[I]);
+			if (I < C.CustomEventData.count-1) Part ^= ",";
+		}
+		Fields["CustomEventData"] = Part ^ "]";
+		Fields["ExternalEventType"] = JSON_Stringify(C.ExternalEventType);
+		Part = "[";
+		for(I, 0, C.ExternalEventData.count-1) {
+			Part ^= JSON_Stringify(C.ExternalEventData[I]);
+			if (I < C.ExternalEventData.count-1) Part ^= ",";
+		}
+		Fields["ExternalEventData"] = Part ^ "]";
+		Fields["MenuNavAction"] = JSON_Stringify(C.MenuNavAction);
+		Fields["KeyCode"] = JSON_Stringify(C.KeyCode);
+		Fields["KeyName"] = JSON_Stringify(C.KeyName);
+	}
+	if (_V is CEditorPluginEvent) {
+		declare C <=> (_V as CEditorPluginEvent);
+		Fields["Type"] = JSON_Stringify(C.Type);
+		Fields["Input"] = JSON_Stringify(C.Input);
+		Fields["EditedAnchorDataId"] = JSON_Stringify(C.EditedAnchorDataId);
+	}
+	if (_V is CSmMapSector) {
+		declare C <=> (_V as CSmMapSector);
+		declare Part = "[";
+		for(I, 0, C.PlayersIds.count-1) {
+			Part ^= JSON_Stringify(C.PlayersIds[I]);
+			if (I < C.PlayersIds.count-1) Part ^= ",";
+		}
+		Fields["PlayersIds"] = Part ^ "]";
+	}
+	if (_V is CSmGauge) {
+		declare C <=> (_V as CSmGauge);
+		Fields["Clan"] = JSON_Stringify(C.Clan);
+		Fields["ValueReal"] = JSON_Stringify(C.ValueReal);
+		Fields["Value"] = JSON_Stringify(C.Value);
+		Fields["Max"] = JSON_Stringify(C.Max);
+		Fields["Speed"] = JSON_Stringify(C.Speed);
+	}
+	return _JSON_Ec(Fields);
 }
